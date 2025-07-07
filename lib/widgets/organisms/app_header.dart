@@ -5,12 +5,14 @@ import '../molecules/add_todo_form.dart';
 
 class AppHeader extends StatelessWidget {
   final TextEditingController controller;
+  final FocusNode focusNode;
   final VoidCallback onAddTodo;
   final VoidCallback onShowSettings;
 
   const AppHeader({
     super.key,
     required this.controller,
+    required this.focusNode,
     required this.onAddTodo,
     required this.onShowSettings,
   });
@@ -41,14 +43,8 @@ class AppHeader extends StatelessWidget {
             children: [
               AddTodoForm(
                 controller: controller,
+                focusNode: focusNode,
                 onAdd: onAddTodo,
-              ),
-              const SizedBox(width: 10),
-              IconButtonAtom(
-                icon: Icons.add,
-                onPressed: onAddTodo,
-                iconColor: Colors.white,
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
               ),
               const SizedBox(width: 10),
               IconButtonAtom(
