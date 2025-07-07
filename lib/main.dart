@@ -67,7 +67,7 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
       
       if (_todos[index].isCompleted) {
         final controller = AnimationController(
-          duration: const Duration(milliseconds: 1500),
+          duration: const Duration(milliseconds: 800),
           vsync: this,
         );
         _animationControllers[_todos[index].id] = controller;
@@ -253,62 +253,67 @@ class CompletionAnimation extends StatelessWidget {
       animation: animation,
       builder: (context, child) {
         return CustomPaint(
-          painter: ConfettiPainter(animation.value),
+          painter: BubblePopPainter(animation.value),
         );
       },
     );
   }
 }
 
-class ConfettiPainter extends CustomPainter {
+class BubblePopPainter extends CustomPainter {
   final double progress;
-  final List<Color> colors = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.yellow,
-    Colors.purple,
-    Colors.orange,
-    Colors.pink,
-  ];
 
-  ConfettiPainter(this.progress);
+  BubblePopPainter(this.progress);
 
   @override
   void paint(Canvas canvas, Size size) {
     if (progress == 0) return;
 
-    final random = List.generate(20, (i) => i);
+    // Draw popping bubbles
+    final bubbleCount = 8;
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
     
-    for (int i = 0; i < random.length; i++) {
-      final paint = Paint()
-        ..color = colors[i % colors.length].withOpacity(1 - progress)
+    for (int i = 0; i < bubbleCount; i++) {
+      final angle = (i / bubbleCount) * 2 * 3.14159;
+      
+      // Bubble expands and fades
+      final bubbleProgress = progress;
+      final distance = 30 * bubbleProgress + 10;
+      final x = centerX + distance * (angle.toString().hashCode % 2 == 0 ? 1 : -1) * (i % 2 == 0 ? 1 : 0.7);
+      final y = centerY + distance * (angle.toString().hashCode % 2 == 0 ? 0.7 : 1) * (i % 2 == 0 ? -1 : 1);
+      
+      // Draw bubble with gradient
+      final bubblePaint = Paint()
+        ..color = Colors.teal.withOpacity(0.3 * (1 - progress))
         ..style = PaintingStyle.fill;
-
-      final x = size.width / 2 + (i - 10) * 20 * progress;
-      final y = size.height / 2 - 200 * progress + 400 * progress * progress;
-      final radius = 5 + i % 3;
-
-      canvas.drawCircle(Offset(x, y), radius * (1 - progress * 0.5), paint);
-    }
-
-    if (progress < 0.5) {
-      final textPainter = TextPainter(
-        text: TextSpan(
-          text: '🎉',
-          style: TextStyle(
-            fontSize: 40 * (1 - progress),
-          ),
-        ),
-        textDirection: TextDirection.ltr,
+      
+      final bubbleRadius = 15 * (1 + progress * 0.5);
+      canvas.drawCircle(Offset(x, y), bubbleRadius, bubblePaint);
+      
+      // Draw bubble highlight
+      final highlightPaint = Paint()
+        ..color = Colors.white.withOpacity(0.4 * (1 - progress))
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawCircle(
+        Offset(x - bubbleRadius * 0.3, y - bubbleRadius * 0.3),
+        bubbleRadius * 0.3,
+        highlightPaint,
       );
-      textPainter.layout();
-      textPainter.paint(
-        canvas,
-        Offset(
-          size.width / 2 - textPainter.width / 2,
-          size.height / 2 - textPainter.height / 2 - 50 * progress,
-        ),
+    }
+    
+    // Draw central pop effect
+    if (progress < 0.3) {
+      final popProgress = progress / 0.3;
+      final popPaint = Paint()
+        ..color = Colors.teal.withOpacity(0.2 * (1 - popProgress))
+        ..style = PaintingStyle.fill;
+      
+      canvas.drawCircle(
+        Offset(centerX, centerY),
+        40 * popProgress,
+        popPaint,
       );
     }
   }
