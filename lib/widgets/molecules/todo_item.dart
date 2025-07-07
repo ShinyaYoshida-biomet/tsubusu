@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/todo.dart';
 import '../atoms/custom_button.dart';
 import '../atoms/custom_text.dart';
+import '../atoms/animated_checkbox.dart';
 
 class TodoItem extends StatelessWidget {
   final Todo todo;
@@ -32,50 +33,43 @@ class TodoItem extends StatelessWidget {
           ),
         ],
       ),
-      child: InkWell(
-        onTap: onToggle, // Make entire card clickable for completion
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Row(
-            children: [
-              // Drag handle (hamburger menu) - only for open tasks
-              if (!todo.isCompleted && reorderIndex != null)
-                ReorderableDragStartListener(
-                  index: reorderIndex!,
-                  child: Padding(
-                    padding: const EdgeInsets.only(right: 8),
-                    child: Icon(
-                      Icons.drag_handle,
-                      color: Colors.grey[400],
-                      size: 20,
-                    ),
-                  ),
-                ),
-              Checkbox(
-                value: todo.isCompleted,
-                onChanged: (_) => onToggle(),
-                activeColor: Theme.of(context).colorScheme.primary,
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: CustomText(
-                  todo.text,
-                  style: TextStyle(
-                    decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
-                    color: todo.isCompleted ? Colors.grey : null,
-                  ),
-                ),
-              ),
-              IconButtonAtom(
-                icon: Icons.delete_outline,
-                onPressed: onDelete,
-                iconColor: Colors.grey,
-                size: 20,
-              ),
-            ],
+      child: ListTile(
+        leading: AnimatedCheckbox(
+          value: todo.isCompleted,
+          onChanged: (_) => onToggle(),
+          activeColor: Theme.of(context).colorScheme.primary,
+        ),
+        title: CustomText(
+          todo.text,
+          style: TextStyle(
+            decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
+            color: todo.isCompleted ? Colors.grey : null,
           ),
         ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButtonAtom(
+              icon: Icons.delete_outline,
+              onPressed: onDelete,
+              iconColor: Colors.grey,
+              size: 20,
+            ),
+            // Hamburger menu for drag and drop (only for open tasks)
+            if (!todo.isCompleted && reorderIndex != null) ...[
+              const SizedBox(width: 8),
+              ReorderableDragStartListener(
+                index: reorderIndex!,
+                child: Icon(
+                  Icons.drag_handle,
+                  color: Colors.grey[400],
+                  size: 20,
+                ),
+              ),
+            ],
+          ],
+        ),
+        onTap: () => onToggle(), // Make entire card clickable
       ),
     );
   }
