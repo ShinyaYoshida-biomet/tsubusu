@@ -34,26 +34,10 @@ class TodoItem extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        leading: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Hamburger menu for drag and drop (only for open tasks)
-            if (!todo.isCompleted && reorderIndex != null)
-              ReorderableDragStartListener(
-                index: reorderIndex!,
-                child: Icon(
-                  Icons.drag_handle,
-                  color: Colors.grey[400],
-                  size: 20,
-                ),
-              ),
-            const SizedBox(width: 8),
-            AnimatedCheckbox(
-              value: todo.isCompleted,
-              onChanged: (_) => onToggle(),
-              activeColor: Theme.of(context).colorScheme.primary,
-            ),
-          ],
+        leading: AnimatedCheckbox(
+          value: todo.isCompleted,
+          onChanged: (_) => onToggle(),
+          activeColor: Theme.of(context).colorScheme.primary,
         ),
         title: CustomText(
           todo.text,
@@ -62,11 +46,28 @@ class TodoItem extends StatelessWidget {
             color: todo.isCompleted ? Colors.grey : null,
           ),
         ),
-        trailing: IconButtonAtom(
-          icon: Icons.delete_outline,
-          onPressed: onDelete,
-          iconColor: Colors.grey,
-          size: 20,
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButtonAtom(
+              icon: Icons.delete_outline,
+              onPressed: onDelete,
+              iconColor: Colors.grey,
+              size: 20,
+            ),
+            // Hamburger menu for drag and drop (only for open tasks)
+            if (!todo.isCompleted && reorderIndex != null) ...[
+              const SizedBox(width: 8),
+              ReorderableDragStartListener(
+                index: reorderIndex!,
+                child: Icon(
+                  Icons.drag_handle,
+                  color: Colors.grey[400],
+                  size: 20,
+                ),
+              ),
+            ],
+          ],
         ),
         onTap: () => onToggle(), // Make entire card clickable
       ),
