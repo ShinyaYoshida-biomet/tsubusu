@@ -78,13 +78,35 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
     });
   }
 
+  List<Todo> get _sortedTodos {
+    final incompleteTodos = _todos.where((todo) => !todo.isCompleted).toList();
+    final completedTodos = _todos.where((todo) => todo.isCompleted).toList();
+    return [...incompleteTodos, ...completedTodos];
+  }
+
   void _deleteTodo(int index) {
     setState(() {
-      final todoId = _todos[index].id;
-      _animationControllers[todoId]?.dispose();
-      _animationControllers.remove(todoId);
-      _todos.removeAt(index);
+      final sortedTodos = _sortedTodos;
+      final todoToDelete = sortedTodos[index];
+      final originalIndex = _todos.indexWhere((todo) => todo.id == todoToDelete.id);
+      
+      if (originalIndex != -1) {
+        final todoId = _todos[originalIndex].id;
+        _animationControllers[todoId]?.dispose();
+        _animationControllers.remove(todoId);
+        _todos.removeAt(originalIndex);
+      }
     });
+  }
+
+  void _toggleTodoFromSorted(int sortedIndex) {
+    final sortedTodos = _sortedTodos;
+    final todoToToggle = sortedTodos[sortedIndex];
+    final originalIndex = _todos.indexWhere((todo) => todo.id == todoToToggle.id);
+    
+    if (originalIndex != -1) {
+      _toggleTodo(originalIndex);
+    }
   }
 
   void _showSettings() {
@@ -114,11 +136,13 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
             onShowSettings: _showSettings,
           ),
           TodoList(
-            todos: _todos,
+            todos: _sortedTodos,
+            originalTodos: _todos,
             animationControllers: _animationControllers,
             animationType: _animationType,
-            onToggleTodo: _toggleTodo,
+            onToggleTodo: _toggleTodoFromSorted,
             onDeleteTodo: _deleteTodo,
+            allCompleted: _todos.isNotEmpty && _todos.every((todo) => todo.isCompleted),
           ),
         ],
       ),

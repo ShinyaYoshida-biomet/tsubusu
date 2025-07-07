@@ -4,11 +4,13 @@ import '../../models/animation_type.dart';
 class CompletionAnimation extends StatelessWidget {
   final Animation<double> animation;
   final AnimationType animationType;
+  final bool isSpecial;
 
   const CompletionAnimation({
     super.key,
     required this.animation,
     required this.animationType,
+    this.isSpecial = false,
   });
 
   @override
@@ -18,8 +20,8 @@ class CompletionAnimation extends StatelessWidget {
       builder: (context, child) {
         return CustomPaint(
           painter: animationType == AnimationType.confetti
-              ? ConfettiPainter(animation.value)
-              : BubblePopPainter(animation.value),
+              ? ConfettiPainter(animation.value, isSpecial: isSpecial)
+              : BubblePopPainter(animation.value, isSpecial: isSpecial),
         );
       },
     );
@@ -28,14 +30,16 @@ class CompletionAnimation extends StatelessWidget {
 
 class BubblePopPainter extends CustomPainter {
   final double progress;
+  final bool isSpecial;
 
-  BubblePopPainter(this.progress);
+  BubblePopPainter(this.progress, {this.isSpecial = false});
 
   @override
   void paint(Canvas canvas, Size size) {
     if (progress == 0) return;
 
-    final bubbleCount = 8;
+    final scale = isSpecial ? 2.0 : 1.0; // Make animation 2x bigger when special
+    final bubbleCount = isSpecial ? 12 : 8; // More bubbles for special animation
     final centerX = size.width / 2;
     final centerY = size.height / 2;
     
@@ -43,7 +47,7 @@ class BubblePopPainter extends CustomPainter {
       final angle = (i / bubbleCount) * 2 * 3.14159;
       
       final bubbleProgress = progress;
-      final distance = 60 * bubbleProgress + 15;
+      final distance = (60 * bubbleProgress + 15) * scale;
       final x = centerX + distance * (angle.toString().hashCode % 2 == 0 ? 1 : -1) * (i % 2 == 0 ? 1 : 0.7);
       final y = centerY + distance * (angle.toString().hashCode % 2 == 0 ? 0.7 : 1) * (i % 2 == 0 ? -1 : 1);
       
@@ -51,7 +55,7 @@ class BubblePopPainter extends CustomPainter {
         ..color = Colors.teal.withValues(alpha: 0.3 * (1 - progress))
         ..style = PaintingStyle.fill;
       
-      final bubbleRadius = 15 * (1 + progress * 0.5);
+      final bubbleRadius = 15 * (1 + progress * 0.5) * scale;
       canvas.drawCircle(Offset(x, y), bubbleRadius, bubblePaint);
       
       final highlightPaint = Paint()
@@ -73,7 +77,7 @@ class BubblePopPainter extends CustomPainter {
       
       canvas.drawCircle(
         Offset(centerX, centerY),
-        40 * popProgress,
+        40 * popProgress * scale,
         popPaint,
       );
     }
@@ -85,6 +89,7 @@ class BubblePopPainter extends CustomPainter {
 
 class ConfettiPainter extends CustomPainter {
   final double progress;
+  final bool isSpecial;
   final List<Color> colors = [
     Colors.red,
     Colors.blue,
@@ -95,13 +100,14 @@ class ConfettiPainter extends CustomPainter {
     Colors.pink,
   ];
 
-  ConfettiPainter(this.progress);
+  ConfettiPainter(this.progress, {this.isSpecial = false});
 
   @override
   void paint(Canvas canvas, Size size) {
     if (progress == 0) return;
 
-    final confettiCount = 20;
+    final scale = isSpecial ? 2.0 : 1.0; // Make animation 2x bigger when special
+    final confettiCount = isSpecial ? 35 : 20; // More confetti for special animation
     final centerX = size.width / 2;
     final centerY = size.height / 2;
     
@@ -110,9 +116,9 @@ class ConfettiPainter extends CustomPainter {
         ..color = colors[i % colors.length].withValues(alpha: 1 - progress)
         ..style = PaintingStyle.fill;
 
-      final x = centerX + (i - 10) * 15 * progress;
-      final y = centerY - 100 * progress + 200 * progress * progress;
-      final radius = 3 + i % 3;
+      final x = centerX + (i - confettiCount/2) * 15 * progress * scale;
+      final y = centerY - 100 * progress * scale + 200 * progress * progress * scale;
+      final radius = (3 + i % 3) * scale;
 
       canvas.drawCircle(Offset(x, y), radius * (1 - progress * 0.5), paint);
     }
@@ -122,7 +128,7 @@ class ConfettiPainter extends CustomPainter {
         text: TextSpan(
           text: '🎉',
           style: TextStyle(
-            fontSize: 30 * (1 - progress),
+            fontSize: 30 * (1 - progress) * scale,
           ),
         ),
         textDirection: TextDirection.ltr,
@@ -132,7 +138,7 @@ class ConfettiPainter extends CustomPainter {
         canvas,
         Offset(
           centerX - textPainter.width / 2,
-          centerY - textPainter.height / 2 - 30 * progress,
+          centerY - textPainter.height / 2 - 30 * progress * scale,
         ),
       );
     }
