@@ -3,11 +3,13 @@ import '../atoms/custom_text_field.dart';
 
 class AddTodoForm extends StatelessWidget {
   final TextEditingController controller;
+  final FocusNode focusNode;
   final VoidCallback onAdd;
 
   const AddTodoForm({
     super.key,
     required this.controller,
+    required this.focusNode,
     required this.onAdd,
   });
 
@@ -16,6 +18,7 @@ class AddTodoForm extends StatelessWidget {
     return Expanded(
       child: CustomTextField(
         controller: controller,
+        focusNode: focusNode,
         style: const TextStyle(color: Colors.white),
         hintText: 'Add a new task...',
         hintStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),

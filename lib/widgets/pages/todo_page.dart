@@ -16,6 +16,7 @@ class TodoPage extends StatefulWidget {
 class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
   final List<Todo> _todos = [];
   final TextEditingController _controller = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
   final Map<String, AnimationController> _animationControllers = {};
   AnimationType _animationType = AnimationType.confetti;
 
@@ -28,6 +29,7 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     for (var controller in _animationControllers.values) {
       controller.dispose();
     }
@@ -48,6 +50,7 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
       _todos.add(Todo(text: _controller.text.trim(), isCompleted: false));
     });
     _controller.clear();
+    _focusNode.requestFocus();
   }
 
   void _toggleTodo(int index) {
@@ -106,6 +109,7 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
         children: [
           AppHeader(
             controller: _controller,
+            focusNode: _focusNode,
             onAddTodo: _addTodo,
             onShowSettings: _showSettings,
           ),
