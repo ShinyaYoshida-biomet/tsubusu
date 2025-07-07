@@ -6,12 +6,14 @@ class TodoList extends StatelessWidget {
   final List<Todo> todos;
   final Function(int) onToggleTodo;
   final Function(int) onDeleteTodo;
+  final Function(int, int)? onReorderTodo;
 
   const TodoList({
     super.key,
     required this.todos,
     required this.onToggleTodo,
     required this.onDeleteTodo,
+    this.onReorderTodo,
   });
 
   @override
@@ -22,17 +24,44 @@ class TodoList extends StatelessWidget {
     return Expanded(
       child: Column(
         children: [
-          // Open tasks section
+          // Open tasks section with drag and drop
           Expanded(
-            child: ListView.builder(
+            child: ReorderableListView.builder(
               padding: const EdgeInsets.all(8),
               itemCount: openTasks.length,
+              buildDefaultDragHandles: false, // Use custom drag handles
+              onReorder: (oldIndex, newIndex) {
+                if (onReorderTodo != null) {
+                  // Convert open task indices to original todo list indices
+                  final oldTodo = openTasks[oldIndex];
+                  final originalOldIndex = todos.indexWhere((t) => t.id == oldTodo.id);
+                  
+                  // Adjust newIndex for ReorderableListView behavior
+                  if (newIndex > oldIndex) {
+                    newIndex--; // When moving down, newIndex is off by 1
+                  }
+                  
+                  // Calculate the new position in the original list
+                  int originalNewIndex;
+                  if (newIndex >= openTasks.length) {
+                    // Moving to the end of open tasks
+                    originalNewIndex = todos.lastIndexWhere((t) => !t.isCompleted);
+                  } else {
+                    final newTodo = openTasks[newIndex];
+                    originalNewIndex = todos.indexWhere((t) => t.id == newTodo.id);
+                  }
+                  
+                  onReorderTodo!(originalOldIndex, originalNewIndex);
+                }
+              },
               itemBuilder: (context, index) {
                 final todo = openTasks[index];
                 final originalIndex = todos.indexWhere((t) => t.id == todo.id);
                 
                 return TodoItem(
+                  key: ValueKey(todo.id),
                   todo: todo,
+                  reorderIndex: index,
                   onToggle: () => onToggleTodo(originalIndex),
                   onDelete: () => onDeleteTodo(originalIndex),
                 );

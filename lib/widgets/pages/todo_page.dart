@@ -70,6 +70,13 @@ class _TodoPageState extends State<TodoPage> {
     }
   }
 
+  void _reorderTodo(int oldIndex, int newIndex) {
+    setState(() {
+      final Todo item = _todos.removeAt(oldIndex);
+      _todos.insert(newIndex, item);
+    });
+  }
+
   void _showSettings() {
     showDialog(
       context: context,
@@ -100,6 +107,7 @@ class _TodoPageState extends State<TodoPage> {
             todos: _todos,
             onToggleTodo: _toggleTodoFromIndex,
             onDeleteTodo: _deleteTodo,
+            onReorderTodo: _reorderTodo,
           ),
         ],
       ),

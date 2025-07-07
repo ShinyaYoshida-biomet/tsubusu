@@ -34,10 +34,26 @@ class TodoItem extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        leading: AnimatedCheckbox(
-          value: todo.isCompleted,
-          onChanged: (_) => onToggle(),
-          activeColor: Theme.of(context).colorScheme.primary,
+        leading: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Hamburger menu for drag and drop (only for open tasks)
+            if (!todo.isCompleted && reorderIndex != null)
+              ReorderableDragStartListener(
+                index: reorderIndex!,
+                child: Icon(
+                  Icons.drag_handle,
+                  color: Colors.grey[400],
+                  size: 20,
+                ),
+              ),
+            const SizedBox(width: 8),
+            AnimatedCheckbox(
+              value: todo.isCompleted,
+              onChanged: (_) => onToggle(),
+              activeColor: Theme.of(context).colorScheme.primary,
+            ),
+          ],
         ),
         title: CustomText(
           todo.text,
@@ -52,6 +68,7 @@ class TodoItem extends StatelessWidget {
           iconColor: Colors.grey,
           size: 20,
         ),
+        onTap: () => onToggle(), // Make entire card clickable
       ),
     );
   }

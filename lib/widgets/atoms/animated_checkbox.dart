@@ -23,39 +23,40 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox>
   late Animation<double> _squeezeAnimation;
   late Animation<double> _popAnimation;
   late Animation<Color?> _colorAnimation;
+  bool _isAnimating = false; // Track animation state
 
   @override
   void initState() {
     super.initState();
     
-    // Squeeze animation - elastic curve for bouncy squeeze effect
+    // Squeeze animation - longer duration for more "tsubusu" feeling
     _squeezeController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 500), // Increased from 300ms
       vsync: this,
     );
     
     // Pop animation - for the final burst effect
     _popController = AnimationController(
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 300), // Slightly faster pop
       vsync: this,
     );
     
     // Scale animation with elastic curve for "tsubusu" effect
     _squeezeAnimation = Tween<double>(
       begin: 1.0,
-      end: 0.3, // Squeeze down to 30% of original size
+      end: 0.1, // Squeeze down to 10% of original size for more "crushing" feel
     ).animate(CurvedAnimation(
       parent: _squeezeController,
-      curve: Curves.elasticIn, // Bouncy squeeze effect
+      curve: Curves.easeInQuart, // Smooth, accelerating squeeze for crushing feeling
     ));
     
     // Pop animation with bounce out
     _popAnimation = Tween<double>(
-      begin: 0.3,
+      begin: 0.1, // Start from the same crushed size
       end: 1.0,
     ).animate(CurvedAnimation(
       parent: _popController,
-      curve: Curves.bounceOut, // Explosive pop effect
+      curve: Curves.elasticOut, // More elastic pop for satisfying release
     ));
     
     // Color animation
@@ -76,11 +77,26 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox>
   }
 
   void _animateCheck() async {
+    // Prevent multiple simultaneous animations
+    if (_isAnimating) return;
+    
     if (!widget.value) {
-      // Animate from unchecked to checked
-      await _squeezeController.forward(); // First squeeze down
-      await _popController.forward(); // Then pop back up with check
-      widget.onChanged?.call(true); // Trigger the state change after animation completes
+      setState(() {
+        _isAnimating = true;
+      });
+      
+      try {
+        // Animate from unchecked to checked
+        await _squeezeController.forward(); // First squeeze down
+        await _popController.forward(); // Then pop back up with check
+        widget.onChanged?.call(true); // Trigger the state change after animation completes
+      } finally {
+        if (mounted) {
+          setState(() {
+            _isAnimating = false;
+          });
+        }
+      }
     } else {
       // Immediate toggle for unchecking
       widget.onChanged?.call(false);
@@ -95,7 +111,7 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox>
     
     // Only reset animations when this specific checkbox value changes externally
     // and it's being unchecked (not when other checkboxes trigger rebuilds)
-    if (oldWidget.value != widget.value && !widget.value) {
+    if (oldWidget.value != widget.value && !widget.value && !_isAnimating) {
       _squeezeController.reset();
       _popController.reset();
     }
@@ -114,9 +130,13 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox>
           if (_squeezeController.isAnimating) {
             scale = _squeezeAnimation.value;
             backgroundColor = Colors.grey[300];
-          } else if (_popController.isAnimating || widget.value) {
+          } else if (_popController.isAnimating) {
             scale = _popAnimation.value;
             backgroundColor = _colorAnimation.value;
+          } else if (widget.value) {
+            // Keep the completed state styling
+            scale = 1.0;
+            backgroundColor = widget.activeColor ?? Colors.teal;
           } else {
             scale = 1.0;
             backgroundColor = Colors.grey[300];
