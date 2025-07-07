@@ -1,8 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   runApp(const TsubusuApp());
+}
+
+enum AnimationType {
+  confetti,
+  bubblePop,
 }
 
 class TsubusuApp extends StatelessWidget {
@@ -42,6 +48,13 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
   final List<Todo> _todos = [];
   final TextEditingController _controller = TextEditingController();
   final Map<String, AnimationController> _animationControllers = {};
+  AnimationType _animationType = AnimationType.confetti;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadAnimationType();
+  }
 
   @override
   void dispose() {
@@ -50,6 +63,57 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  void _loadAnimationType() async {
+    final prefs = await SharedPreferences.getInstance();
+    final animationTypeIndex = prefs.getInt('animation_type') ?? 0;
+    setState(() {
+      _animationType = AnimationType.values[animationTypeIndex];
+    });
+  }
+
+  void _saveAnimationType(AnimationType type) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt('animation_type', type.index);
+    setState(() {
+      _animationType = type;
+    });
+  }
+
+  void _showSettings() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Settings'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Animation Type:'),
+            const SizedBox(height: 12),
+            RadioListTile<AnimationType>(
+              title: const Text('🎉 Confetti'),
+              value: AnimationType.confetti,
+              groupValue: _animationType,
+              onChanged: (value) => _saveAnimationType(value!),
+            ),
+            RadioListTile<AnimationType>(
+              title: const Text('🫧 Bubble Pop'),
+              value: AnimationType.bubblePop,
+              groupValue: _animationType,
+              onChanged: (value) => _saveAnimationType(value!),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
+          ),
+        ],
+      ),
+    );
   }
 
   void _addTodo() {
@@ -153,6 +217,14 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
                         backgroundColor: Colors.white.withOpacity(0.2),
                       ),
                     ),
+                    const SizedBox(width: 10),
+                    IconButton(
+                      icon: const Icon(Icons.settings, color: Colors.white),
+                      onPressed: () => _showSettings(),
+                      style: IconButton.styleFrom(
+                        backgroundColor: Colors.white.withOpacity(0.2),
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -190,6 +262,7 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
                     child: IgnorePointer(
                       child: CompletionAnimation(
                         animation: controller,
+                        animationType: _animationType,
                       ),
                     ),
                   );
@@ -255,8 +328,13 @@ class TodoItem extends StatelessWidget {
 
 class CompletionAnimation extends StatelessWidget {
   final Animation<double> animation;
+  final AnimationType animationType;
 
-  const CompletionAnimation({super.key, required this.animation});
+  const CompletionAnimation({
+    super.key,
+    required this.animation,
+    required this.animationType,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -264,7 +342,9 @@ class CompletionAnimation extends StatelessWidget {
       animation: animation,
       builder: (context, child) {
         return CustomPaint(
-          painter: BubblePopPainter(animation.value),
+          painter: animationType == AnimationType.confetti
+              ? ConfettiPainter(animation.value)
+              : BubblePopPainter(animation.value),
         );
       },
     );
@@ -325,6 +405,66 @@ class BubblePopPainter extends CustomPainter {
         Offset(centerX, centerY),
         40 * popProgress,
         popPaint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+}
+
+class ConfettiPainter extends CustomPainter {
+  final double progress;
+  final List<Color> colors = [
+    Colors.red,
+    Colors.blue,
+    Colors.green,
+    Colors.yellow,
+    Colors.purple,
+    Colors.orange,
+    Colors.pink,
+  ];
+
+  ConfettiPainter(this.progress);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (progress == 0) return;
+
+    final confettiCount = 20;
+    final centerX = size.width / 2;
+    final centerY = size.height / 2;
+    
+    for (int i = 0; i < confettiCount; i++) {
+      final paint = Paint()
+        ..color = colors[i % colors.length].withOpacity(1 - progress)
+        ..style = PaintingStyle.fill;
+
+      final x = centerX + (i - 10) * 15 * progress;
+      final y = centerY - 100 * progress + 200 * progress * progress;
+      final radius = 3 + i % 3;
+
+      canvas.drawCircle(Offset(x, y), radius * (1 - progress * 0.5), paint);
+    }
+
+    // Draw celebratory emoji
+    if (progress < 0.6) {
+      final textPainter = TextPainter(
+        text: TextSpan(
+          text: '🎉',
+          style: TextStyle(
+            fontSize: 30 * (1 - progress),
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      );
+      textPainter.layout();
+      textPainter.paint(
+        canvas,
+        Offset(
+          centerX - textPainter.width / 2,
+          centerY - textPainter.height / 2 - 30 * progress,
+        ),
       );
     }
   }
