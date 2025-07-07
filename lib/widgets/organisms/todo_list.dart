@@ -6,18 +6,22 @@ import '../molecules/todo_item.dart';
 
 class TodoList extends StatelessWidget {
   final List<Todo> todos;
+  final List<Todo> originalTodos;
   final Map<String, AnimationController> animationControllers;
   final AnimationType animationType;
   final Function(int) onToggleTodo;
   final Function(int) onDeleteTodo;
+  final bool allCompleted;
 
   const TodoList({
     super.key,
     required this.todos,
+    required this.originalTodos,
     required this.animationControllers,
     required this.animationType,
     required this.onToggleTodo,
     required this.onDeleteTodo,
+    required this.allCompleted,
   });
 
   @override
@@ -46,6 +50,9 @@ class TodoList extends StatelessWidget {
             
             if (todoIndex == -1) return const SizedBox.shrink();
             
+            // Check if this is the animation for the task that completed all tasks
+            final isLastToComplete = allCompleted;
+            
             return Positioned(
               top: 8 + todoIndex * 72.0, // Approximate position of each todo item
               left: 8,
@@ -55,6 +62,7 @@ class TodoList extends StatelessWidget {
                 child: CompletionAnimation(
                   animation: controller,
                   animationType: animationType,
+                  isSpecial: isLastToComplete,
                 ),
               ),
             );
