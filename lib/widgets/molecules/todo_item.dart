@@ -2,17 +2,20 @@ import 'package:flutter/material.dart';
 import '../../models/todo.dart';
 import '../atoms/custom_button.dart';
 import '../atoms/custom_text.dart';
+import '../atoms/animated_checkbox.dart';
 
 class TodoItem extends StatelessWidget {
   final Todo todo;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
+  final int? reorderIndex; // For drag handle
 
   const TodoItem({
     super.key,
     required this.todo,
     required this.onToggle,
     required this.onDelete,
+    this.reorderIndex,
   });
 
   @override
@@ -31,7 +34,7 @@ class TodoItem extends StatelessWidget {
         ],
       ),
       child: ListTile(
-        leading: Checkbox(
+        leading: AnimatedCheckbox(
           value: todo.isCompleted,
           onChanged: (_) => onToggle(),
           activeColor: Theme.of(context).colorScheme.primary,
