@@ -102,7 +102,7 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
       body: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               color: Theme.of(context).colorScheme.primary,
               boxShadow: [
@@ -120,11 +120,11 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
                   'Tsubusu',
                   style: TextStyle(
                     color: Colors.white,
-                    fontSize: 28,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 20),
+                const SizedBox(height: 12),
                 Row(
                   children: [
                     Expanded(
@@ -140,7 +140,7 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
                             borderRadius: BorderRadius.circular(8),
                             borderSide: BorderSide.none,
                           ),
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         ),
                         onSubmitted: (_) => _addTodo(),
                       ),
@@ -160,7 +160,7 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
           ),
           Expanded(
             child: ListView.builder(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(8),
               itemCount: _todos.length,
               itemBuilder: (context, index) {
                 final todo = _todos[index];
