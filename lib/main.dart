@@ -159,31 +159,42 @@ class _TodoScreenState extends State<TodoScreen> with TickerProviderStateMixin {
             ),
           ),
           Expanded(
-            child: ListView.builder(
-              padding: const EdgeInsets.all(8),
-              itemCount: _todos.length,
-              itemBuilder: (context, index) {
-                final todo = _todos[index];
-                final hasAnimation = _animationControllers.containsKey(todo.id);
-                
-                return Stack(
-                  children: [
-                    TodoItem(
+            child: Stack(
+              children: [
+                ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: _todos.length,
+                  itemBuilder: (context, index) {
+                    final todo = _todos[index];
+                    
+                    return TodoItem(
                       todo: todo,
                       onToggle: () => _toggleTodo(index),
                       onDelete: () => _deleteTodo(index),
-                    ),
-                    if (hasAnimation)
-                      Positioned.fill(
-                        child: IgnorePointer(
-                          child: CompletionAnimation(
-                            animation: _animationControllers[todo.id]!,
-                          ),
-                        ),
+                    );
+                  },
+                ),
+                // Animations layer - always on top
+                ..._animationControllers.entries.map((entry) {
+                  final todoId = entry.key;
+                  final controller = entry.value;
+                  final todoIndex = _todos.indexWhere((t) => t.id == todoId);
+                  
+                  if (todoIndex == -1) return const SizedBox.shrink();
+                  
+                  return Positioned(
+                    top: 8 + todoIndex * 72.0, // Approximate position of each todo item
+                    left: 8,
+                    right: 8,
+                    height: 64,
+                    child: IgnorePointer(
+                      child: CompletionAnimation(
+                        animation: controller,
                       ),
-                  ],
-                );
-              },
+                    ),
+                  );
+                }).toList(),
+              ],
             ),
           ),
         ],
@@ -279,7 +290,7 @@ class BubblePopPainter extends CustomPainter {
       
       // Bubble expands and fades
       final bubbleProgress = progress;
-      final distance = 30 * bubbleProgress + 10;
+      final distance = 60 * bubbleProgress + 15;
       final x = centerX + distance * (angle.toString().hashCode % 2 == 0 ? 1 : -1) * (i % 2 == 0 ? 1 : 0.7);
       final y = centerY + distance * (angle.toString().hashCode % 2 == 0 ? 0.7 : 1) * (i % 2 == 0 ? -1 : 1);
       
