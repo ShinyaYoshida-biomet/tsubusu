@@ -64,17 +64,20 @@ class _TodoPageState extends State<TodoPage> {
     });
   }
 
+  void _reorderTodo(int oldIndex, int newIndex) {
+    setState(() {
+      if (oldIndex >= 0 && oldIndex < _todos.length && 
+          newIndex >= 0 && newIndex < _todos.length) {
+        final todo = _todos.removeAt(oldIndex);
+        _todos.insert(newIndex, todo);
+      }
+    });
+  }
+
   void _toggleTodoFromIndex(int index) {
     if (index >= 0 && index < _todos.length) {
       _toggleTodo(index);
     }
-  }
-
-  void _reorderTodo(int oldIndex, int newIndex) {
-    setState(() {
-      final Todo item = _todos.removeAt(oldIndex);
-      _todos.insert(newIndex, item);
-    });
   }
 
   void _showSettings() {
