@@ -7,12 +7,14 @@ class TodoItem extends StatelessWidget {
   final Todo todo;
   final VoidCallback onToggle;
   final VoidCallback onDelete;
+  final int? reorderIndex; // For drag handle
 
   const TodoItem({
     super.key,
     required this.todo,
     required this.onToggle,
     required this.onDelete,
+    this.reorderIndex,
   });
 
   @override
@@ -30,24 +32,49 @@ class TodoItem extends StatelessWidget {
           ),
         ],
       ),
-      child: ListTile(
-        leading: Checkbox(
-          value: todo.isCompleted,
-          onChanged: (_) => onToggle(),
-          activeColor: Theme.of(context).colorScheme.primary,
-        ),
-        title: CustomText(
-          todo.text,
-          style: TextStyle(
-            decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
-            color: todo.isCompleted ? Colors.grey : null,
+      child: InkWell(
+        onTap: onToggle, // Make entire card clickable for completion
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            children: [
+              // Drag handle (hamburger menu) - only for open tasks
+              if (!todo.isCompleted && reorderIndex != null)
+                ReorderableDragStartListener(
+                  index: reorderIndex!,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: Icon(
+                      Icons.drag_handle,
+                      color: Colors.grey[400],
+                      size: 20,
+                    ),
+                  ),
+                ),
+              Checkbox(
+                value: todo.isCompleted,
+                onChanged: (_) => onToggle(),
+                activeColor: Theme.of(context).colorScheme.primary,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: CustomText(
+                  todo.text,
+                  style: TextStyle(
+                    decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
+                    color: todo.isCompleted ? Colors.grey : null,
+                  ),
+                ),
+              ),
+              IconButtonAtom(
+                icon: Icons.delete_outline,
+                onPressed: onDelete,
+                iconColor: Colors.grey,
+                size: 20,
+              ),
+            ],
           ),
-        ),
-        trailing: IconButtonAtom(
-          icon: Icons.delete_outline,
-          onPressed: onDelete,
-          iconColor: Colors.grey,
-          size: 20,
         ),
       ),
     );

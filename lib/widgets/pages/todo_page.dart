@@ -68,10 +68,7 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
         _animationControllers[todoId] = controller;
       });
       
-      print('Starting animation for todo: $todoId'); // Debug
-      
       controller.forward().then((_) {
-        print('Animation completed for todo: $todoId'); // Debug
         Future.delayed(const Duration(milliseconds: 200), () {
           if (mounted) {
             setState(() {
@@ -79,7 +76,6 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
               _todos[index].isCompleted = true;
               _animationControllers.remove(todoId);
               controller.dispose();
-              print('Task moved to completed: $todoId'); // Debug
             });
           }
         });
@@ -100,6 +96,16 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
         _animationControllers[todoId]?.dispose();
         _animationControllers.remove(todoId);
         _todos.removeAt(index);
+      }
+    });
+  }
+
+  void _reorderTodo(int oldIndex, int newIndex) {
+    setState(() {
+      if (oldIndex >= 0 && oldIndex < _todos.length && 
+          newIndex >= 0 && newIndex < _todos.length) {
+        final todo = _todos.removeAt(oldIndex);
+        _todos.insert(newIndex, todo);
       }
     });
   }
@@ -143,6 +149,7 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
             animationType: _animationType,
             onToggleTodo: _toggleTodoFromIndex,
             onDeleteTodo: _deleteTodo,
+            onReorderTodo: _reorderTodo,
             allCompleted: _todos.isNotEmpty && _todos.every((todo) => todo.isCompleted),
           ),
         ],

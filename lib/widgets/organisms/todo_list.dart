@@ -11,6 +11,7 @@ class TodoList extends StatelessWidget {
   final AnimationType animationType;
   final Function(int) onToggleTodo;
   final Function(int) onDeleteTodo;
+  final Function(int, int) onReorderTodo;
   final bool allCompleted;
 
   const TodoList({
@@ -21,6 +22,7 @@ class TodoList extends StatelessWidget {
     required this.animationType,
     required this.onToggleTodo,
     required this.onDeleteTodo,
+    required this.onReorderTodo,
     required this.allCompleted,
   });
 
@@ -37,17 +39,26 @@ class TodoList extends StatelessWidget {
             children: [
               // Open tasks section
               Expanded(
-                child: ListView.builder(
+                child: ReorderableListView.builder(
                   padding: const EdgeInsets.all(8),
                   itemCount: openTasks.length,
+                  buildDefaultDragHandles: false, // Disable default drag handles
+                  onReorder: (oldIndex, newIndex) {
+                    if (newIndex > oldIndex) newIndex--;
+                    final oldOriginalIndex = todos.indexWhere((t) => t.id == openTasks[oldIndex].id);
+                    final newOriginalIndex = todos.indexWhere((t) => t.id == openTasks[newIndex].id);
+                    onReorderTodo(oldOriginalIndex, newOriginalIndex);
+                  },
                   itemBuilder: (context, index) {
                     final todo = openTasks[index];
                     final originalIndex = todos.indexWhere((t) => t.id == todo.id);
                     
                     return TodoItem(
+                      key: ValueKey(todo.id),
                       todo: todo,
                       onToggle: () => onToggleTodo(originalIndex),
                       onDelete: () => onDeleteTodo(originalIndex),
+                      reorderIndex: index, // Pass the index for drag handle
                     );
                   },
                 ),
@@ -104,8 +115,6 @@ class TodoList extends StatelessWidget {
             final todoId = entry.key;
             final controller = entry.value;
             
-            print('Rendering animation for todo: $todoId'); // Debug
-            
             // Find the todo in the original todos list to determine where it should animate
             final originalTodo = originalTodos.firstWhere((t) => t.id == todoId, orElse: () => throw StateError('Todo $todoId not found'));
             
@@ -114,26 +123,21 @@ class TodoList extends StatelessWidget {
             if (!originalTodo.isCompleted) {
               // Task is still in open section (animation is playing before it moves)
               final openIndex = openTasks.indexWhere((t) => t.id == todoId);
-              print('Open index for $todoId: $openIndex'); // Debug
               if (openIndex != -1) {
                 animationTop = 8 + openIndex * 72.0;
-                print('Animation top position: $animationTop'); // Debug
               }
             } else {
               // Task has moved to completed section
               final completedIndex = completedTasks.indexWhere((t) => t.id == todoId);
-              print('Completed index for $todoId: $completedIndex'); // Debug
               if (completedIndex != -1) {
                 // Calculate position in completed section
                 final completedSectionTop = MediaQuery.of(context).size.height - 
                     (completedTasks.length * 72.0 + 50); // 50 for header + padding
                 animationTop = completedSectionTop + 40 + 8 + completedIndex * 72.0;
-                print('Completed animation top position: $animationTop'); // Debug
               }
             }
             
             if (animationTop == null || animationTop < 0) {
-              print('Animation skipped for $todoId - invalid position: $animationTop'); // Debug
               return const SizedBox.shrink();
             }
             
