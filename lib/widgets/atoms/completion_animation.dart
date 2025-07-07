@@ -15,11 +15,9 @@ class CompletionAnimation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    print('CompletionAnimation build - value: ${animation.value}, type: $animationType'); // Debug
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
-        print('AnimatedBuilder - animation value: ${animation.value}'); // Debug
         return CustomPaint(
           painter: animationType == AnimationType.confetti
               ? ConfettiPainter(animation.value, isSpecial: isSpecial)
