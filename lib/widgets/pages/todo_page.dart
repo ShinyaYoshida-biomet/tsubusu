@@ -54,58 +54,59 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
   }
 
   void _toggleTodo(int index) {
-    setState(() {
-      _todos[index].isCompleted = !_todos[index].isCompleted;
+    final wasCompleted = _todos[index].isCompleted;
+    
+    if (!wasCompleted) {
+      // Task is being completed - play animation first, then move
+      final todoId = _todos[index].id;
+      final controller = AnimationController(
+        duration: const Duration(milliseconds: 800),
+        vsync: this,
+      );
       
-      if (_todos[index].isCompleted) {
-        final controller = AnimationController(
-          duration: const Duration(milliseconds: 800),
-          vsync: this,
-        );
-        _animationControllers[_todos[index].id] = controller;
-        
-        controller.forward().then((_) {
-          Future.delayed(const Duration(milliseconds: 500), () {
-            if (mounted) {
-              setState(() {
-                _animationControllers.remove(_todos[index].id);
-                controller.dispose();
-              });
-            }
-          });
+      setState(() {
+        _animationControllers[todoId] = controller;
+      });
+      
+      print('Starting animation for todo: $todoId'); // Debug
+      
+      controller.forward().then((_) {
+        print('Animation completed for todo: $todoId'); // Debug
+        Future.delayed(const Duration(milliseconds: 200), () {
+          if (mounted) {
+            setState(() {
+              // Now actually mark as completed and move to bottom section
+              _todos[index].isCompleted = true;
+              _animationControllers.remove(todoId);
+              controller.dispose();
+              print('Task moved to completed: $todoId'); // Debug
+            });
+          }
         });
-      }
-    });
+      });
+    } else {
+      // Task is being uncompleted - just toggle immediately
+      setState(() {
+        _todos[index].isCompleted = false;
+      });
+    }
   }
 
-  List<Todo> get _sortedTodos {
-    final incompleteTodos = _todos.where((todo) => !todo.isCompleted).toList();
-    final completedTodos = _todos.where((todo) => todo.isCompleted).toList();
-    return [...incompleteTodos, ...completedTodos];
-  }
 
   void _deleteTodo(int index) {
     setState(() {
-      final sortedTodos = _sortedTodos;
-      final todoToDelete = sortedTodos[index];
-      final originalIndex = _todos.indexWhere((todo) => todo.id == todoToDelete.id);
-      
-      if (originalIndex != -1) {
-        final todoId = _todos[originalIndex].id;
+      if (index >= 0 && index < _todos.length) {
+        final todoId = _todos[index].id;
         _animationControllers[todoId]?.dispose();
         _animationControllers.remove(todoId);
-        _todos.removeAt(originalIndex);
+        _todos.removeAt(index);
       }
     });
   }
 
-  void _toggleTodoFromSorted(int sortedIndex) {
-    final sortedTodos = _sortedTodos;
-    final todoToToggle = sortedTodos[sortedIndex];
-    final originalIndex = _todos.indexWhere((todo) => todo.id == todoToToggle.id);
-    
-    if (originalIndex != -1) {
-      _toggleTodo(originalIndex);
+  void _toggleTodoFromIndex(int index) {
+    if (index >= 0 && index < _todos.length) {
+      _toggleTodo(index);
     }
   }
 
@@ -136,11 +137,11 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
             onShowSettings: _showSettings,
           ),
           TodoList(
-            todos: _sortedTodos,
+            todos: _todos,
             originalTodos: _todos,
             animationControllers: _animationControllers,
             animationType: _animationType,
-            onToggleTodo: _toggleTodoFromSorted,
+            onToggleTodo: _toggleTodoFromIndex,
             onDeleteTodo: _deleteTodo,
             allCompleted: _todos.isNotEmpty && _todos.every((todo) => todo.isCompleted),
           ),
