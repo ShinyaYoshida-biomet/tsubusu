@@ -13,11 +13,10 @@ class TodoPage extends StatefulWidget {
   State<TodoPage> createState() => _TodoPageState();
 }
 
-class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
+class _TodoPageState extends State<TodoPage> {
   final List<Todo> _todos = [];
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  final Map<String, AnimationController> _animationControllers = {};
   AnimationType _animationType = AnimationType.confetti;
 
   @override
@@ -30,9 +29,6 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
   void dispose() {
     _controller.dispose();
     _focusNode.dispose();
-    for (var controller in _animationControllers.values) {
-      controller.dispose();
-    }
     super.dispose();
   }
 
@@ -54,47 +50,15 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
   }
 
   void _toggleTodo(int index) {
-    final wasCompleted = _todos[index].isCompleted;
-    
-    if (!wasCompleted) {
-      // Task is being completed - play animation first, then move
-      final todoId = _todos[index].id;
-      final controller = AnimationController(
-        duration: const Duration(milliseconds: 800),
-        vsync: this,
-      );
-      
-      setState(() {
-        _animationControllers[todoId] = controller;
-      });
-      
-      controller.forward().then((_) {
-        Future.delayed(const Duration(milliseconds: 200), () {
-          if (mounted) {
-            setState(() {
-              // Now actually mark as completed and move to bottom section
-              _todos[index].isCompleted = true;
-              _animationControllers.remove(todoId);
-              controller.dispose();
-            });
-          }
-        });
-      });
-    } else {
-      // Task is being uncompleted - just toggle immediately
-      setState(() {
-        _todos[index].isCompleted = false;
-      });
-    }
+    setState(() {
+      _todos[index].isCompleted = !_todos[index].isCompleted;
+    });
   }
 
 
   void _deleteTodo(int index) {
     setState(() {
       if (index >= 0 && index < _todos.length) {
-        final todoId = _todos[index].id;
-        _animationControllers[todoId]?.dispose();
-        _animationControllers.remove(todoId);
         _todos.removeAt(index);
       }
     });
@@ -144,13 +108,9 @@ class _TodoPageState extends State<TodoPage> with TickerProviderStateMixin {
           ),
           TodoList(
             todos: _todos,
-            originalTodos: _todos,
-            animationControllers: _animationControllers,
-            animationType: _animationType,
             onToggleTodo: _toggleTodoFromIndex,
             onDeleteTodo: _deleteTodo,
             onReorderTodo: _reorderTodo,
-            allCompleted: _todos.isNotEmpty && _todos.every((todo) => todo.isCompleted),
           ),
         ],
       ),
