@@ -4,8 +4,6 @@ enum ThemeType {
   forest,
   ocean,
   sunset,
-  midnight,
-  system,
 }
 
 class AppTheme {
@@ -80,26 +78,10 @@ class AppTheme {
     brightness: Brightness.light,
   );
 
-  // Midnight theme (dark theme)
-  static const midnight = AppTheme(
-    name: 'Midnight',
-    type: ThemeType.midnight,
-    primaryColor: Color(0xFF64B5F6),
-    backgroundColor: Color(0xFF121212),
-    cardColor: Color(0xFF1E1E1E),
-    textColor: Colors.white,
-    completedSectionColor: Color(0xFF2D2D2D),
-    completedTextColor: Color(0xFF888888),
-    borderColor: Color(0xFF404040),
-    shadowColor: Color(0x33000000),
-    brightness: Brightness.dark,
-  );
-
   static const List<AppTheme> predefinedThemes = [
     forest,
     ocean,
     sunset,
-    midnight,
   ];
 
   static AppTheme getTheme(ThemeType type) {
@@ -110,11 +92,6 @@ class AppTheme {
         return ocean;
       case ThemeType.sunset:
         return sunset;
-      case ThemeType.midnight:
-        return midnight;
-      case ThemeType.system:
-        // Return appropriate theme based on system brightness
-        return forest; // Default fallback
     }
   }
 

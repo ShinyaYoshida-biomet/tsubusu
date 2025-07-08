@@ -29,9 +29,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
     super.initState();
     _selectedAnimationType = widget.currentAnimationType;
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
-    _selectedThemeType = themeProvider.isSystemTheme 
-        ? ThemeType.system 
-        : themeProvider.currentTheme.type;
+    _selectedThemeType = themeProvider.currentTheme.type;
   }
 
   void _handleAnimationTypeChange(AnimationType? type) async {
@@ -68,9 +66,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
             const SizedBox(height: 8),
             ...ThemeType.values.map((type) => RadioListTile<ThemeType>(
                   title: CustomText(_getThemeDisplayName(type)),
-                  subtitle: type == ThemeType.system 
-                      ? const CustomText('Follows system settings', style: TextStyle(fontSize: 12))
-                      : null,
                   value: type,
                   groupValue: _selectedThemeType,
                   onChanged: _handleThemeChange,
@@ -111,10 +106,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
         return 'Ocean (Blue)';
       case ThemeType.sunset:
         return 'Sunset (Orange)';
-      case ThemeType.midnight:
-        return 'Midnight (Dark)';
-      case ThemeType.system:
-        return 'System Default';
     }
   }
 }

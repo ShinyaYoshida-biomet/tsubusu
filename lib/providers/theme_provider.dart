@@ -6,10 +6,8 @@ class ThemeProvider extends ChangeNotifier {
   static const String _themeKey = 'selected_theme';
   
   AppTheme _currentTheme = AppTheme.forest; // Default to Forest theme
-  bool _isSystemTheme = false;
   
   AppTheme get currentTheme => _currentTheme;
-  bool get isSystemTheme => _isSystemTheme;
   
   ThemeProvider() {
     _loadTheme();
@@ -26,18 +24,11 @@ class ThemeProvider extends ChangeNotifier {
           orElse: () => ThemeType.forest,
         );
         
-        if (themeType == ThemeType.system) {
-          _isSystemTheme = true;
-          _updateSystemTheme();
-        } else {
-          _currentTheme = AppTheme.getTheme(themeType);
-          _isSystemTheme = false;
-        }
+        _currentTheme = AppTheme.getTheme(themeType);
       }
     } catch (e) {
       // If loading fails, use default Forest theme
       _currentTheme = AppTheme.forest;
-      _isSystemTheme = false;
     }
     notifyListeners();
   }
@@ -47,32 +38,12 @@ class ThemeProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_themeKey, themeType.toString());
       
-      if (themeType == ThemeType.system) {
-        _isSystemTheme = true;
-        _updateSystemTheme();
-      } else {
-        _currentTheme = AppTheme.getTheme(themeType);
-        _isSystemTheme = false;
-      }
+      _currentTheme = AppTheme.getTheme(themeType);
       
       notifyListeners();
     } catch (e) {
       // Handle error gracefully
       debugPrint('Failed to save theme: $e');
-    }
-  }
-  
-  void _updateSystemTheme() {
-    final brightness = WidgetsBinding.instance.platformDispatcher.platformBrightness;
-    _currentTheme = brightness == Brightness.dark 
-        ? AppTheme.midnight 
-        : AppTheme.forest;
-  }
-  
-  void updateSystemTheme() {
-    if (_isSystemTheme) {
-      _updateSystemTheme();
-      notifyListeners();
     }
   }
   
