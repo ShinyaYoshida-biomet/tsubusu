@@ -16,6 +16,21 @@ class CustomText extends StatelessWidget {
     this.overflow,
   });
 
+  CustomText.title(
+    this.text, {
+    super.key,
+    Color? color,
+    double? fontSize,
+    FontWeight? fontWeight,
+    this.textAlign,
+    this.maxLines,
+    this.overflow,
+  }) : style = TextStyle(
+          color: color,
+          fontSize: fontSize ?? 20,
+          fontWeight: fontWeight ?? FontWeight.bold,
+        );
+
   @override
   Widget build(BuildContext context) {
     return Text(
@@ -24,33 +39,6 @@ class CustomText extends StatelessWidget {
       textAlign: textAlign,
       maxLines: maxLines,
       overflow: overflow,
-    );
-  }
-}
-
-class TitleText extends StatelessWidget {
-  final String text;
-  final Color? color;
-  final double? fontSize;
-  final FontWeight? fontWeight;
-
-  const TitleText(
-    this.text, {
-    super.key,
-    this.color,
-    this.fontSize,
-    this.fontWeight,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomText(
-      text,
-      style: TextStyle(
-        color: color,
-        fontSize: fontSize ?? 20,
-        fontWeight: fontWeight ?? FontWeight.bold,
-      ),
     );
   }
 }
