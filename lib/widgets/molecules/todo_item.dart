@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/todo.dart';
+import '../../providers/theme_provider.dart';
 import '../atoms/custom_button.dart';
 import '../atoms/custom_text.dart';
 import '../atoms/animated_checkbox.dart';
@@ -20,14 +22,16 @@ class TodoItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+    
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: themeProvider.cardColor,
         borderRadius: BorderRadius.circular(8),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: themeProvider.shadowColor,
             blurRadius: 2,
             offset: const Offset(0, 1),
           ),
@@ -37,13 +41,13 @@ class TodoItem extends StatelessWidget {
         leading: AnimatedCheckbox(
           value: todo.isCompleted,
           onChanged: (_) => onToggle(),
-          activeColor: Theme.of(context).colorScheme.primary,
+          activeColor: themeProvider.primaryColor,
         ),
         title: CustomText(
           todo.text,
           style: TextStyle(
             decoration: todo.isCompleted ? TextDecoration.lineThrough : null,
-            color: todo.isCompleted ? Colors.grey : null,
+            color: todo.isCompleted ? themeProvider.completedTextColor : themeProvider.textColor,
           ),
         ),
         trailing: Row(
@@ -52,7 +56,7 @@ class TodoItem extends StatelessWidget {
             IconButtonAtom(
               icon: Icons.delete_outline,
               onPressed: onDelete,
-              iconColor: Colors.grey,
+              iconColor: themeProvider.completedTextColor,
               size: 20,
             ),
             // Hamburger menu for drag and drop (only for open tasks)
@@ -62,7 +66,7 @@ class TodoItem extends StatelessWidget {
                 index: reorderIndex!,
                 child: Icon(
                   Icons.drag_handle,
-                  color: Colors.grey[400],
+                  color: themeProvider.completedTextColor,
                   size: 20,
                 ),
               ),

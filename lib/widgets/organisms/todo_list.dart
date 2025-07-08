@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../models/todo.dart';
+import '../../providers/theme_provider.dart';
 import '../molecules/todo_item.dart';
 
 class TodoList extends StatelessWidget {
@@ -18,6 +20,7 @@ class TodoList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
     final openTasks = todos.where((todo) => !todo.isCompleted).toList();
     final completedTasks = todos.where((todo) => todo.isCompleted).toList();
     
@@ -73,9 +76,9 @@ class TodoList extends StatelessWidget {
           if (completedTasks.isNotEmpty)
             Container(
               decoration: BoxDecoration(
-                color: Colors.grey[200],
+                color: themeProvider.completedSectionColor,
                 border: Border(
-                  top: BorderSide(color: Colors.grey[300]!, width: 1),
+                  top: BorderSide(color: themeProvider.borderColor, width: 1),
                 ),
               ),
               child: Column(
@@ -85,7 +88,7 @@ class TodoList extends StatelessWidget {
                     child: Text(
                       'Completed (${completedTasks.length})',
                       style: TextStyle(
-                        color: Colors.grey[600],
+                        color: themeProvider.completedTextColor,
                         fontSize: 12,
                         fontWeight: FontWeight.w500,
                       ),
