@@ -11,7 +11,7 @@ class PlatformChannelHandler {
   static Future<dynamic> _handleMethodCall(MethodCall call) async {
     switch (call.method) {
       case 'createNewWindow':
-        await WindowManager.createOffsetWindow();
+        await WindowManager.createNewWindow(position: const Offset(130, 130));
         return null;
       default:
         throw PlatformException(
