@@ -3,19 +3,18 @@ class Todo {
   bool isCompleted;
   final String id;
 
-  Todo({required this.text, required this.isCompleted})
-      : id = DateTime.now().millisecondsSinceEpoch.toString();
-
-  Todo._withId({required this.text, required this.isCompleted, required this.id});
+  Todo({required this.text, required this.isCompleted, String? id})
+      : id = id ?? DateTime.now().millisecondsSinceEpoch.toString();
 
   Todo copyWith({
     String? text,
     bool? isCompleted,
+    String? id,
   }) {
-    return Todo._withId(
+    return Todo(
       text: text ?? this.text,
       isCompleted: isCompleted ?? this.isCompleted,
-      id: id,
+      id: id ?? this.id,
     );
   }
 
@@ -28,7 +27,7 @@ class Todo {
   }
 
   factory Todo.fromJson(Map<String, dynamic> json) {
-    return Todo._withId(
+    return Todo(
       id: json['id'],
       text: json['text'],
       isCompleted: json['isCompleted'],
