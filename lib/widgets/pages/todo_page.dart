@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/animation_type.dart';
 import '../../services/preferences_service.dart';
 import '../../services/window_todo_service.dart';
-import '../../services/window_counter_service.dart';
-import '../../services/platform_channel_handler.dart';
+import '../../services/window_manager.dart';
 import '../organisms/app_header.dart';
 import '../organisms/todo_list.dart';
 import '../molecules/settings_dialog.dart';
@@ -31,8 +31,10 @@ class _TodoPageState extends State<TodoPage> {
   }
   
   Future<void> _initializeWindow() async {
-    // Get auto-incremented window number
-    final windowNumber = await WindowCounterService.getNextWindowNumber();
+    final prefs = await SharedPreferences.getInstance();
+    final currentCounter = prefs.getInt('window_counter') ?? 0;
+    final windowNumber = currentCounter + 1;
+    await prefs.setInt('window_counter', windowNumber);
     final windowId = 'window_$windowNumber';
     
     _todoService = WindowTodoService(windowId);
@@ -42,7 +44,7 @@ class _TodoPageState extends State<TodoPage> {
     
     // Update the actual window title
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      PlatformChannelHandler.updateWindowTitle(_windowTitle);
+      WindowManager.updateWindowTitle(_windowTitle);
     });
     
     setState(() {
@@ -91,7 +93,7 @@ class _TodoPageState extends State<TodoPage> {
       _windowTitle = newTitle;
     });
     // Update the actual window title
-    PlatformChannelHandler.updateWindowTitle(newTitle);
+    WindowManager.updateWindowTitle(newTitle);
   }
 
   void _showSettings() {
