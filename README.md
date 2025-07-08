@@ -3,6 +3,7 @@
 A minimal ToDo app for macOS, inspired by Stickies but focused on task management.
 
 
+
 ## Getting Started
 
 To run the app:
@@ -17,3 +18,8 @@ flutter run -d macos
 - Dart SDK (3.7.2 or later)
 - macOS development environment
 - Xcode (for macOS development)
+
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
