@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'providers/theme_provider.dart';
 import 'widgets/pages/todo_page.dart';
 
 void main() {
@@ -10,14 +12,18 @@ class TsubusuApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Tsubusu',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.teal),
-        useMaterial3: true,
+    return ChangeNotifierProvider(
+      create: (context) => ThemeProvider(),
+      child: Consumer<ThemeProvider>(
+        builder: (context, themeProvider, child) {
+          return MaterialApp(
+            title: 'Tsubusu',
+            theme: themeProvider.themeData,
+            home: const TodoPage(),
+            debugShowCheckedModeBanner: false,
+          );
+        },
       ),
-      home: const TodoPage(),
-      debugShowCheckedModeBanner: false,
     );
   }
 }
