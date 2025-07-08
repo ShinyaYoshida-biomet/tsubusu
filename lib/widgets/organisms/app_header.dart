@@ -79,8 +79,6 @@ class _AppHeaderState extends State<AppHeader> {
                   height: 32,
                   child: TextField(
                     controller: _titleController,
-                    textAlign: TextAlign.left,
-                    textDirection: TextDirection.ltr,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 20,
@@ -97,14 +95,9 @@ class _AppHeaderState extends State<AppHeader> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    maxLines: 1,
                     cursorColor: Colors.white,
                     cursorWidth: 2.0,
                     cursorHeight: 24.0,
-                    enableInteractiveSelection: true,
-                    mouseCursor: SystemMouseCursors.text,
-                    keyboardType: TextInputType.text,
-                    textInputAction: TextInputAction.done,
                     autocorrect: false,
                     enableSuggestions: false,
                   ),

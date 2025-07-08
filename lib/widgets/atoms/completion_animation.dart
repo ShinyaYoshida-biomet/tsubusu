@@ -15,13 +15,18 @@ class CompletionAnimation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final double scale = isSpecial ? 2.0 : 1.0;
+    final int count = animationType == AnimationType.confetti
+        ? (isSpecial ? 35 : 20)
+        : (isSpecial ? 12 : 8);
+
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         return CustomPaint(
           painter: animationType == AnimationType.confetti
-              ? ConfettiPainter(animation.value, isSpecial: isSpecial)
-              : BubblePopPainter(animation.value, isSpecial: isSpecial),
+              ? ConfettiPainter(animation.value, scale: scale, count: count)
+              : BubblePopPainter(animation.value, scale: scale, count: count),
         );
       },
     );
@@ -30,21 +35,20 @@ class CompletionAnimation extends StatelessWidget {
 
 class BubblePopPainter extends CustomPainter {
   final double progress;
-  final bool isSpecial;
+  final double scale;
+  final int count;
 
-  BubblePopPainter(this.progress, {this.isSpecial = false});
+  BubblePopPainter(this.progress, {required this.scale, required this.count});
 
   @override
   void paint(Canvas canvas, Size size) {
     if (progress == 0) return;
 
-    final scale = isSpecial ? 2.0 : 1.0; // Make animation 2x bigger when special
-    final bubbleCount = isSpecial ? 12 : 8; // More bubbles for special animation
     final centerX = size.width / 2;
     final centerY = size.height / 2;
     
-    for (int i = 0; i < bubbleCount; i++) {
-      final angle = (i / bubbleCount) * 2 * 3.14159;
+    for (int i = 0; i < count; i++) {
+      final angle = (i / count) * 2 * 3.14159;
       
       final bubbleProgress = progress;
       final distance = (60 * bubbleProgress + 15) * scale;
@@ -89,7 +93,8 @@ class BubblePopPainter extends CustomPainter {
 
 class ConfettiPainter extends CustomPainter {
   final double progress;
-  final bool isSpecial;
+  final double scale;
+  final int count;
   final List<Color> colors = [
     Colors.red,
     Colors.blue,
@@ -100,23 +105,21 @@ class ConfettiPainter extends CustomPainter {
     Colors.pink,
   ];
 
-  ConfettiPainter(this.progress, {this.isSpecial = false});
+  ConfettiPainter(this.progress, {required this.scale, required this.count});
 
   @override
   void paint(Canvas canvas, Size size) {
     if (progress == 0) return;
 
-    final scale = isSpecial ? 2.0 : 1.0; // Make animation 2x bigger when special
-    final confettiCount = isSpecial ? 35 : 20; // More confetti for special animation
     final centerX = size.width / 2;
     final centerY = size.height / 2;
     
-    for (int i = 0; i < confettiCount; i++) {
+    for (int i = 0; i < count; i++) {
       final paint = Paint()
         ..color = colors[i % colors.length].withValues(alpha: 1 - progress)
         ..style = PaintingStyle.fill;
 
-      final x = centerX + (i - confettiCount/2) * 15 * progress * scale;
+      final x = centerX + (i - count/2) * 15 * progress * scale;
       final y = centerY - 100 * progress * scale + 200 * progress * progress * scale;
       final radius = (3 + i % 3) * scale;
 
