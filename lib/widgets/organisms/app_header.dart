@@ -47,6 +47,7 @@ class AppHeader extends StatelessWidget {
                 onAdd: onAddTodo,
               ),
               const SizedBox(width: 10),
+              // Settings button
               IconButtonAtom(
                 icon: Icons.settings,
                 onPressed: onShowSettings,
