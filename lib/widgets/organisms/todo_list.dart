@@ -4,7 +4,7 @@ import '../../models/todo.dart';
 import '../../providers/theme_provider.dart';
 import '../molecules/todo_item.dart';
 
-class TodoList extends StatelessWidget {
+class TodoList extends StatefulWidget {
   final List<Todo> todos;
   final Function(int) onToggleTodo;
   final Function(int) onDeleteTodo;
@@ -19,10 +19,19 @@ class TodoList extends StatelessWidget {
   });
 
   @override
+  State<TodoList> createState() => _TodoListState();
+}
+
+class _TodoListState extends State<TodoList> {
+  double _completedSectionHeight = 200.0; // Default height
+  final double _minCompletedHeight = 80.0;
+  final double _maxCompletedHeight = 400.0;
+
+  @override
   Widget build(BuildContext context) {
     final themeProvider = Provider.of<ThemeProvider>(context);
-    final openTasks = todos.where((todo) => !todo.isCompleted).toList();
-    final completedTasks = todos.where((todo) => todo.isCompleted).toList();
+    final openTasks = widget.todos.where((todo) => !todo.isCompleted).toList();
+    final completedTasks = widget.todos.where((todo) => todo.isCompleted).toList();
     
     return Expanded(
       child: Column(
@@ -34,10 +43,10 @@ class TodoList extends StatelessWidget {
               itemCount: openTasks.length,
               buildDefaultDragHandles: false, // Use custom drag handles
               onReorder: (oldIndex, newIndex) {
-                if (onReorderTodo != null) {
+                if (widget.onReorderTodo != null) {
                   // Convert open task indices to original todo list indices
                   final oldTodo = openTasks[oldIndex];
-                  final originalOldIndex = todos.indexWhere((t) => t.id == oldTodo.id);
+                  final originalOldIndex = widget.todos.indexWhere((t) => t.id == oldTodo.id);
                   
                   // Adjust newIndex for ReorderableListView behavior
                   if (newIndex > oldIndex) {
@@ -48,72 +57,102 @@ class TodoList extends StatelessWidget {
                   int originalNewIndex;
                   if (newIndex >= openTasks.length) {
                     // Moving to the end of open tasks
-                    originalNewIndex = todos.lastIndexWhere((t) => !t.isCompleted);
+                    originalNewIndex = widget.todos.lastIndexWhere((t) => !t.isCompleted);
                   } else {
                     final newTodo = openTasks[newIndex];
-                    originalNewIndex = todos.indexWhere((t) => t.id == newTodo.id);
+                    originalNewIndex = widget.todos.indexWhere((t) => t.id == newTodo.id);
                   }
                   
-                  onReorderTodo!(originalOldIndex, originalNewIndex);
+                  widget.onReorderTodo!(originalOldIndex, originalNewIndex);
                 }
               },
               itemBuilder: (context, index) {
                 final todo = openTasks[index];
-                final originalIndex = todos.indexWhere((t) => t.id == todo.id);
+                final originalIndex = widget.todos.indexWhere((t) => t.id == todo.id);
                 
                 return TodoItem(
                   key: ValueKey(todo.id),
                   todo: todo,
                   reorderIndex: index,
-                  onToggle: () => onToggleTodo(originalIndex),
-                  onDelete: () => onDeleteTodo(originalIndex),
+                  onToggle: () => widget.onToggleTodo(originalIndex),
+                  onDelete: () => widget.onDeleteTodo(originalIndex),
                 );
               },
             ),
           ),
           
-          // Completed tasks section - at the bottom
+          // Completed tasks section - at the bottom with resizable divider
           if (completedTasks.isNotEmpty)
-            Container(
-              decoration: BoxDecoration(
-                color: themeProvider.completedSectionColor,
-                border: Border(
-                  top: BorderSide(color: themeProvider.borderColor, width: 1),
-                ),
-              ),
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Text(
-                      'Completed (${completedTasks.length})',
-                      style: TextStyle(
-                        color: themeProvider.completedTextColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
+            Column(
+              children: [
+                // Resizable divider
+                MouseRegion(
+                  cursor: SystemMouseCursors.resizeUpDown,
+                  child: GestureDetector(
+                    onPanUpdate: (details) {
+                      setState(() {
+                        _completedSectionHeight = (_completedSectionHeight - details.delta.dy)
+                            .clamp(_minCompletedHeight, _maxCompletedHeight);
+                      });
+                    },
+                    child: Container(
+                      height: 8,
+                      color: themeProvider.borderColor,
+                      child: Center(
+                        child: Container(
+                          height: 4,
+                          width: 40,
+                          decoration: BoxDecoration(
+                            color: themeProvider.completedTextColor.withValues(alpha: 0.5),
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
                       ),
                     ),
                   ),
-                  SizedBox(
-                    height: completedTasks.length * 72.0 + 16, // Fixed height for completed tasks
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 8),
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: completedTasks.length,
-                      itemBuilder: (context, index) {
-                        final todo = completedTasks[index];
-                        final originalIndex = todos.indexWhere((t) => t.id == todo.id);
-                        
-                        return TodoItem(
-                          todo: todo,
-                          onToggle: () => onToggleTodo(originalIndex),
-                          onDelete: () => onDeleteTodo(originalIndex),
-                        );
-                      },
+                ),
+                // Completed tasks container
+                Container(
+                  height: _completedSectionHeight,
+                  decoration: BoxDecoration(
+                    color: themeProvider.completedSectionColor,
+                    border: Border(
+                      top: BorderSide(color: themeProvider.borderColor, width: 1),
                     ),
                   ),
-                ],
-              ),
+                  child: Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        child: Text(
+                          'Completed (${completedTasks.length})',
+                          style: TextStyle(
+                            color: themeProvider.completedTextColor,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: ListView.builder(
+                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                          itemCount: completedTasks.length,
+                          itemBuilder: (context, index) {
+                            final todo = completedTasks[index];
+                            final originalIndex = widget.todos.indexWhere((t) => t.id == todo.id);
+                            
+                            return TodoItem(
+                              todo: todo,
+                              onToggle: () => widget.onToggleTodo(originalIndex),
+                              onDelete: () => widget.onDeleteTodo(originalIndex),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
             ),
         ],
       ),
