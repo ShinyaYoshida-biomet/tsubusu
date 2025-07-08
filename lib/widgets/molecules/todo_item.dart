@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../models/todo.dart';
 import '../../providers/theme_provider.dart';
-import '../atoms/custom_button.dart';
+import '../atoms/icon_button_atom.dart';
 import '../atoms/custom_text.dart';
 import '../atoms/animated_checkbox.dart';
 
