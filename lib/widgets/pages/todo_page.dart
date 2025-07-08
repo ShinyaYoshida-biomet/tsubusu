@@ -3,6 +3,7 @@ import '../../models/todo.dart';
 import '../../models/animation_type.dart';
 import '../../services/preferences_service.dart';
 import '../../services/shared_todo_service.dart';
+import '../../services/platform_channel_handler.dart';
 import '../organisms/app_header.dart';
 import '../organisms/todo_list.dart';
 import '../molecules/settings_dialog.dart';
@@ -19,6 +20,7 @@ class _TodoPageState extends State<TodoPage> {
   final FocusNode _focusNode = FocusNode();
   AnimationType _animationType = AnimationType.confetti;
   late SharedTodoService _todoService;
+  String _windowTitle = 'Tsubusu';
 
   @override
   void initState() {
@@ -65,6 +67,14 @@ class _TodoPageState extends State<TodoPage> {
     _todoService.toggleTodo(index);
   }
 
+  void _onTitleChanged(String newTitle) {
+    setState(() {
+      _windowTitle = newTitle;
+    });
+    // Update the actual window title
+    PlatformChannelHandler.updateWindowTitle(newTitle);
+  }
+
   void _showSettings() {
     showDialog(
       context: context,
@@ -90,6 +100,8 @@ class _TodoPageState extends State<TodoPage> {
             focusNode: _focusNode,
             onAddTodo: _addTodo,
             onShowSettings: _showSettings,
+            windowTitle: _windowTitle,
+            onTitleChanged: _onTitleChanged,
           ),
           ListenableBuilder(
             listenable: _todoService,
