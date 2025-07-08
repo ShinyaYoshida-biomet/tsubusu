@@ -3,6 +3,7 @@ import FlutterMacOS
 
 @main
 class AppDelegate: FlutterAppDelegate {
+  private var windowCounter = 1
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
     super.applicationDidFinishLaunching(aNotification)
     setupMenuBar()
@@ -122,14 +123,29 @@ class AppDelegate: FlutterAppDelegate {
   }
   
   @objc private func newWindow() {
-    // Send message to Flutter to create new window
-    if let window = NSApplication.shared.mainWindow,
-       let flutterViewController = window.contentViewController as? FlutterViewController {
-      let methodChannel = FlutterMethodChannel(
-        name: "tsubusu/window_manager",
-        binaryMessenger: flutterViewController.engine.binaryMessenger
-      )
-      methodChannel.invokeMethod("createNewWindow", arguments: nil)
-    }
+    // Increment counter for new window
+    windowCounter += 1
+    
+    // Create new window with proper Flutter setup
+    let newWindow = NSWindow(
+      contentRect: NSRect(x: 130, y: 130, width: 300, height: 400),
+      styleMask: [.titled, .closable, .miniaturizable, .resizable],
+      backing: .buffered,
+      defer: false
+    )
+    
+    let flutterViewController = FlutterViewController()
+    newWindow.contentViewController = flutterViewController
+    
+    // Configure window with title bar visible and numbered name
+    newWindow.titlebarAppearsTransparent = false
+    newWindow.titleVisibility = .visible
+    newWindow.title = "tsubusu \(windowCounter)"
+    newWindow.minSize = NSSize(width: 250, height: 300)
+    newWindow.maxSize = NSSize(width: 600, height: 800)
+    
+    RegisterGeneratedPlugins(registry: flutterViewController)
+    
+    newWindow.makeKeyAndOrderFront(nil)
   }
 }
