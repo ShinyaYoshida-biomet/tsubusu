@@ -71,48 +71,44 @@ class _AppHeaderState extends State<AppHeader> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Editable window title
-          SizedBox(
-            height: 32,
-            child: TextField(
-              controller: _titleController,
-              textAlign: TextAlign.left,
-              textDirection: TextDirection.ltr,
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
-              decoration: const InputDecoration(
-                border: InputBorder.none,
-                contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-                isDense: true,
-                hintText: 'Enter title...',
-                hintStyle: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              maxLines: 1,
-              cursorColor: Colors.white,
-              cursorWidth: 2.0,
-              cursorHeight: 24.0,
-              enableInteractiveSelection: true,
-              mouseCursor: SystemMouseCursors.text,
-              keyboardType: TextInputType.text,
-              textInputAction: TextInputAction.done,
-              autocorrect: false,
-              enableSuggestions: false,
-            ),
-          ),
-          const SizedBox(height: 12),
+          // Title row with settings button
           Row(
             children: [
-              AddTodoForm(
-                controller: widget.controller,
-                focusNode: widget.focusNode,
-                onAdd: widget.onAddTodo,
+              Expanded(
+                child: SizedBox(
+                  height: 32,
+                  child: TextField(
+                    controller: _titleController,
+                    textAlign: TextAlign.left,
+                    textDirection: TextDirection.ltr,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                    ),
+                    decoration: const InputDecoration(
+                      border: InputBorder.none,
+                      contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      isDense: true,
+                      hintText: 'Enter title...',
+                      hintStyle: TextStyle(
+                        color: Colors.white70,
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    maxLines: 1,
+                    cursorColor: Colors.white,
+                    cursorWidth: 2.0,
+                    cursorHeight: 24.0,
+                    enableInteractiveSelection: true,
+                    mouseCursor: SystemMouseCursors.text,
+                    keyboardType: TextInputType.text,
+                    textInputAction: TextInputAction.done,
+                    autocorrect: false,
+                    enableSuggestions: false,
+                  ),
+                ),
               ),
               const SizedBox(width: 10),
               // Settings button
@@ -123,6 +119,13 @@ class _AppHeaderState extends State<AppHeader> {
                 backgroundColor: Colors.white.withValues(alpha: 0.2),
               ),
             ],
+          ),
+          const SizedBox(height: 12),
+          // Add todo form
+          AddTodoForm(
+            controller: widget.controller,
+            focusNode: widget.focusNode,
+            onAdd: widget.onAddTodo,
           ),
         ],
       ),
