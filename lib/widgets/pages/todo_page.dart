@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../models/todo.dart';
 import '../../models/animation_type.dart';
 import '../../services/preferences_service.dart';
+import '../../services/shared_todo_service.dart';
 import '../organisms/app_header.dart';
 import '../organisms/todo_list.dart';
 import '../molecules/settings_dialog.dart';
@@ -14,14 +15,15 @@ class TodoPage extends StatefulWidget {
 }
 
 class _TodoPageState extends State<TodoPage> {
-  final List<Todo> _todos = [];
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   AnimationType _animationType = AnimationType.confetti;
+  late SharedTodoService _todoService;
 
   @override
   void initState() {
     super.initState();
+    _todoService = SharedTodoService.instance;
     _loadAnimationType();
   }
 
@@ -42,42 +44,25 @@ class _TodoPageState extends State<TodoPage> {
   void _addTodo() {
     if (_controller.text.trim().isEmpty) return;
     
-    setState(() {
-      _todos.add(Todo(text: _controller.text.trim(), isCompleted: false));
-    });
+    _todoService.addTodo(_controller.text.trim());
     _controller.clear();
     _focusNode.requestFocus();
   }
 
   void _toggleTodo(int index) {
-    setState(() {
-      _todos[index].isCompleted = !_todos[index].isCompleted;
-    });
+    _todoService.toggleTodo(index);
   }
 
-
   void _deleteTodo(int index) {
-    setState(() {
-      if (index >= 0 && index < _todos.length) {
-        _todos.removeAt(index);
-      }
-    });
+    _todoService.deleteTodo(index);
   }
 
   void _reorderTodo(int oldIndex, int newIndex) {
-    setState(() {
-      if (oldIndex >= 0 && oldIndex < _todos.length && 
-          newIndex >= 0 && newIndex < _todos.length) {
-        final todo = _todos.removeAt(oldIndex);
-        _todos.insert(newIndex, todo);
-      }
-    });
+    _todoService.reorderTodo(oldIndex, newIndex);
   }
 
   void _toggleTodoFromIndex(int index) {
-    if (index >= 0 && index < _todos.length) {
-      _toggleTodo(index);
-    }
+    _todoService.toggleTodo(index);
   }
 
   void _showSettings() {
@@ -106,11 +91,16 @@ class _TodoPageState extends State<TodoPage> {
             onAddTodo: _addTodo,
             onShowSettings: _showSettings,
           ),
-          TodoList(
-            todos: _todos,
-            onToggleTodo: _toggleTodoFromIndex,
-            onDeleteTodo: _deleteTodo,
-            onReorderTodo: _reorderTodo,
+          ListenableBuilder(
+            listenable: _todoService,
+            builder: (context, child) {
+              return TodoList(
+                todos: _todoService.todos,
+                onToggleTodo: _toggleTodoFromIndex,
+                onDeleteTodo: _deleteTodo,
+                onReorderTodo: _reorderTodo,
+              );
+            },
           ),
         ],
       ),
