@@ -20,4 +20,12 @@ class PlatformChannelHandler {
         );
     }
   }
+  
+  static Future<void> updateWindowTitle(String title) async {
+    try {
+      await _channel.invokeMethod('updateWindowTitle', {'title': title});
+    } catch (e) {
+      print('Failed to update window title: $e');
+    }
+  }
 }

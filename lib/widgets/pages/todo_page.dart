@@ -3,6 +3,7 @@ import '../../models/todo.dart';
 import '../../models/animation_type.dart';
 import '../../services/preferences_service.dart';
 import '../../services/shared_todo_service.dart';
+import '../../services/platform_channel_handler.dart';
 import '../organisms/app_header.dart';
 import '../organisms/todo_list.dart';
 import '../molecules/settings_dialog.dart';
@@ -70,6 +71,8 @@ class _TodoPageState extends State<TodoPage> {
     setState(() {
       _windowTitle = newTitle;
     });
+    // Update the actual window title
+    PlatformChannelHandler.updateWindowTitle(newTitle);
   }
 
   void _showSettings() {
