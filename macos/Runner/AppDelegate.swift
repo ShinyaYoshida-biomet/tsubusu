@@ -4,6 +4,7 @@ import FlutterMacOS
 @main
 class AppDelegate: FlutterAppDelegate {
   private var windowCounter = 1
+  private var windowControllers: [NSWindowController] = []
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
     super.applicationDidFinishLaunching(aNotification)
     setupMenuBar()
@@ -15,7 +16,7 @@ class AppDelegate: FlutterAppDelegate {
   }
   
   override func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-    return true
+    return false // Keep app running even when all windows are closed
   }
 
   override func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
@@ -126,9 +127,13 @@ class AppDelegate: FlutterAppDelegate {
     // Increment counter for new window
     windowCounter += 1
     
+    // Calculate offset position for new windows (cascade effect)
+    let offsetX = 100 + (windowCounter - 1) * 30
+    let offsetY = 100 + (windowCounter - 1) * 30
+    
     // Create new window with proper Flutter setup
     let newWindow = NSWindow(
-      contentRect: NSRect(x: 130, y: 130, width: 300, height: 400),
+      contentRect: NSRect(x: offsetX, y: offsetY, width: 300, height: 400),
       styleMask: [.titled, .closable, .miniaturizable, .resizable],
       backing: .buffered,
       defer: false
@@ -144,8 +149,42 @@ class AppDelegate: FlutterAppDelegate {
     newWindow.minSize = NSSize(width: 250, height: 300)
     newWindow.maxSize = NSSize(width: 600, height: 800)
     
+    // Ensure window is at normal zoom level
+    newWindow.setIsZoomed(false)
+    
+    // Explicitly set the content size to ensure proper dimensions
+    newWindow.setContentSize(NSSize(width: 300, height: 400))
+    
     RegisterGeneratedPlugins(registry: flutterViewController)
     
+    // Create window controller to manage the window independently
+    let windowController = NSWindowController(window: newWindow)
+    windowControllers.append(windowController)
+    
+    // Ensure window is not minimized and is properly displayed
+    newWindow.deminiaturize(nil)
+    newWindow.orderFront(nil)
     newWindow.makeKeyAndOrderFront(nil)
+    
+    windowController.showWindow(nil)
+  }
+}
+
+// Window delegate to handle independent window closing
+class WindowDelegate: NSObject, NSWindowDelegate {
+  private var windowControllers: UnsafeMutablePointer<[NSWindowController]>
+  private let windowController: NSWindowController
+  
+  init(windowControllers: UnsafeMutablePointer<[NSWindowController]>, windowController: NSWindowController) {
+    self.windowControllers = windowControllers
+    self.windowController = windowController
+    super.init()
+  }
+  
+  func windowWillClose(_ notification: Notification) {
+    // Remove this window controller from the array when window closes
+    if let index = windowControllers.pointee.firstIndex(of: windowController) {
+      windowControllers.pointee.remove(at: index)
+    }
   }
 }
