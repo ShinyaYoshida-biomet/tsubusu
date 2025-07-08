@@ -8,6 +8,11 @@ class AppDelegate: FlutterAppDelegate {
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
     super.applicationDidFinishLaunching(aNotification)
     setupMenuBar()
+    
+    // Setup method channel with a slight delay to ensure Flutter is ready
+    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+      self.setupMainWindowMethodChannel()
+    }
   }
   
   override func applicationWillFinishLaunching(_ notification: Notification) {
@@ -157,6 +162,9 @@ class AppDelegate: FlutterAppDelegate {
     
     RegisterGeneratedPlugins(registry: flutterViewController)
     
+    // Set up method channel for this window
+    setupMethodChannel(for: flutterViewController, window: newWindow)
+    
     // Create window controller to manage the window independently
     let windowController = NSWindowController(window: newWindow)
     windowControllers.append(windowController)
@@ -167,6 +175,38 @@ class AppDelegate: FlutterAppDelegate {
     newWindow.makeKeyAndOrderFront(nil)
     
     windowController.showWindow(nil)
+  }
+  
+  private func setupMainWindowMethodChannel() {
+    if let window = NSApplication.shared.mainWindow,
+       let flutterViewController = window.contentViewController as? FlutterViewController {
+      setupMethodChannel(for: flutterViewController, window: window)
+    }
+  }
+  
+  private func setupMethodChannel(for flutterViewController: FlutterViewController, window: NSWindow) {
+    let methodChannel = FlutterMethodChannel(
+      name: "tsubusu/window_manager",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
+    
+    methodChannel.setMethodCallHandler { [weak window] (call, result) in
+      switch call.method {
+      case "updateWindowTitle":
+        if let args = call.arguments as? [String: Any],
+           let title = args["title"] as? String,
+           let window = window {
+          DispatchQueue.main.async {
+            window.title = title
+          }
+          result(nil)
+        } else {
+          result(FlutterError(code: "INVALID_ARGUMENT", message: "Title not provided", details: nil))
+        }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 }
 

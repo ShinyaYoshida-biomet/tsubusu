@@ -19,7 +19,35 @@ class MainFlutterWindow: NSWindow {
     self.maxSize = NSSize(width: 600, height: 800)
 
     RegisterGeneratedPlugins(registry: flutterViewController)
+    
+    // Setup method channel for window title updates
+    setupMethodChannel(for: flutterViewController, window: self)
 
     super.awakeFromNib()
+  }
+  
+  private func setupMethodChannel(for flutterViewController: FlutterViewController, window: NSWindow) {
+    let methodChannel = FlutterMethodChannel(
+      name: "tsubusu/window_manager",
+      binaryMessenger: flutterViewController.engine.binaryMessenger
+    )
+    
+    methodChannel.setMethodCallHandler { [weak window] (call, result) in
+      switch call.method {
+      case "updateWindowTitle":
+        if let args = call.arguments as? [String: Any],
+           let title = args["title"] as? String,
+           let window = window {
+          DispatchQueue.main.async {
+            window.title = title
+          }
+          result(nil)
+        } else {
+          result(FlutterError(code: "INVALID_ARGUMENT", message: "Title not provided", details: nil))
+        }
+      default:
+        result(FlutterMethodNotImplemented)
+      }
+    }
   }
 }
