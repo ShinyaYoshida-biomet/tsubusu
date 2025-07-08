@@ -19,6 +19,7 @@ class _TodoPageState extends State<TodoPage> {
   final FocusNode _focusNode = FocusNode();
   AnimationType _animationType = AnimationType.confetti;
   late SharedTodoService _todoService;
+  String _windowTitle = 'Tsubusu';
 
   @override
   void initState() {
@@ -65,6 +66,12 @@ class _TodoPageState extends State<TodoPage> {
     _todoService.toggleTodo(index);
   }
 
+  void _onTitleChanged(String newTitle) {
+    setState(() {
+      _windowTitle = newTitle;
+    });
+  }
+
   void _showSettings() {
     showDialog(
       context: context,
@@ -90,6 +97,8 @@ class _TodoPageState extends State<TodoPage> {
             focusNode: _focusNode,
             onAddTodo: _addTodo,
             onShowSettings: _showSettings,
+            windowTitle: _windowTitle,
+            onTitleChanged: _onTitleChanged,
           ),
           ListenableBuilder(
             listenable: _todoService,
