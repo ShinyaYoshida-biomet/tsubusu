@@ -46,6 +46,7 @@ class WindowManager {
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       }));
       
+      // Configure window like the main window
       await window.setFrame(newPosition & _defaultWindowSize);
       await window.setTitle(_windowTitle);
       await window.show();
