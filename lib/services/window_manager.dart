@@ -9,14 +9,16 @@ class WindowManager {
   static const Size _maxWindowSize = Size(600, 800);
 
   /// Creates a new window with the todo app
-  static Future<WindowController?> createNewWindow() async {
+  static Future<WindowController?> createNewWindow({Offset? position}) async {
     try {
       final window = await DesktopMultiWindow.createWindow(jsonEncode({
         'type': 'todo_window',
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       }));
-      
-      await window.setFrame(const Offset(100, 100) & _defaultWindowSize);
+
+      final newPosition = position ?? const Offset(100, 100);
+
+      await window.setFrame(newPosition & _defaultWindowSize);
       await window.setTitle(_windowTitle);
       await window.show();
 
@@ -30,32 +32,6 @@ class WindowManager {
   /// Gets the current window controller
   static WindowController getCurrentWindow() {
     return WindowController.fromWindowId(0);
-  }
-
-  /// Creates a new window positioned offset from the current one
-  static Future<WindowController?> createOffsetWindow() async {
-    try {
-      // Create window with default offset
-      final newPosition = Offset(
-        130, // Offset from default position
-        130,
-      );
-
-      final window = await DesktopMultiWindow.createWindow(jsonEncode({
-        'type': 'todo_window',
-        'timestamp': DateTime.now().millisecondsSinceEpoch,
-      }));
-      
-      // Configure window like the main window
-      await window.setFrame(newPosition & _defaultWindowSize);
-      await window.setTitle(_windowTitle);
-      await window.show();
-
-      return window;
-    } catch (e) {
-      debugPrint('Failed to create offset window: $e');
-      return null;
-    }
   }
 
   /// Shows a window creation menu at the specified position
@@ -93,7 +69,7 @@ class WindowManager {
     ).then((value) {
       switch (value) {
         case 'new_window':
-          createOffsetWindow();
+          createNewWindow(position: const Offset(130, 130));
           break;
         case 'new_window_here':
           createNewWindow();

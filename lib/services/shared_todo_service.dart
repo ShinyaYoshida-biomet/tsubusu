@@ -14,6 +14,11 @@ class SharedTodoService extends ChangeNotifier {
     _loadTodos();
   }
 
+  @visibleForTesting
+  static void reset() {
+    _instance = null;
+  }
+
   static const String _todosKey = 'shared_todos';
   List<Todo> _todos = [];
 
