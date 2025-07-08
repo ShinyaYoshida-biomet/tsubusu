@@ -1,12 +1,21 @@
 import 'dart:convert';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class WindowManager {
   static const String _windowTitle = 'Tsubusu';
   static const Size _defaultWindowSize = Size(300, 400);
   static const Size _minWindowSize = Size(250, 300);
   static const Size _maxWindowSize = Size(600, 800);
+
+  static Future<void> updateWindowTitle(String title) async {
+    try {
+      const MethodChannel('tsubusu/window_manager').invokeMethod('updateWindowTitle', {'title': title});
+    } catch (e) {
+      print('Failed to update window title: $e');
+    }
+  }
 
   /// Creates a new window with the todo app
   static Future<WindowController?> createNewWindow({Offset? position}) async {
