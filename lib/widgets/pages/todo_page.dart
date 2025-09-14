@@ -28,10 +28,19 @@ class _TodoPageState extends State<TodoPage> {
   
   Future<void> _initializeWindow() async {
     final prefs = await SharedPreferences.getInstance();
-    final currentCounter = prefs.getInt('window_counter') ?? 0;
-    final windowNumber = currentCounter + 1;
-    await prefs.setInt('window_counter', windowNumber);
+    final openWindows = prefs.getStringList('open_windows') ?? [];
+    
+    // Find the lowest available window number
+    int windowNumber = 1;
+    while (openWindows.contains('window_$windowNumber')) {
+      windowNumber++;
+    }
+    
     final windowId = 'window_$windowNumber';
+    
+    // Add this window to the list of open windows
+    openWindows.add(windowId);
+    await prefs.setStringList('open_windows', openWindows);
     
     _todoService = WindowTodoService(windowId);
     
@@ -50,10 +59,20 @@ class _TodoPageState extends State<TodoPage> {
 
   @override
   void dispose() {
+    _removeFromOpenWindows();
     _controller.dispose();
     _focusNode.dispose();
     _todoService?.dispose();
     super.dispose();
+  }
+
+  Future<void> _removeFromOpenWindows() async {
+    if (_todoService != null) {
+      final prefs = await SharedPreferences.getInstance();
+      final openWindows = prefs.getStringList('open_windows') ?? [];
+      openWindows.remove(_todoService!.windowId);
+      await prefs.setStringList('open_windows', openWindows);
+    }
   }
 
 
