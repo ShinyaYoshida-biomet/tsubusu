@@ -106,6 +106,14 @@ class _SettingsDialogState extends State<SettingsDialog> {
         return 'Ocean (Blue)';
       case ThemeType.sunset:
         return 'Sunset (Orange)';
+      case ThemeType.lavender:
+        return 'Lavender (Purple)';
+      case ThemeType.rose:
+        return 'Rose (Pink)';
+      case ThemeType.cherry:
+        return 'Cherry (Red)';
+      case ThemeType.mint:
+        return 'Mint (Green)';
     }
   }
 }
