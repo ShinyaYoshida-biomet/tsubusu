@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../models/animation_type.dart';
-import '../../services/preferences_service.dart';
 import '../../services/window_todo_service.dart';
 import '../../services/window_manager.dart';
 import '../organisms/app_header.dart';
@@ -18,7 +16,6 @@ class TodoPage extends StatefulWidget {
 class _TodoPageState extends State<TodoPage> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  AnimationType _animationType = AnimationType.confetti;
   WindowTodoService? _todoService;
   String _windowTitle = 'Tsubusu';
   bool _isInitialized = false;
@@ -27,7 +24,6 @@ class _TodoPageState extends State<TodoPage> {
   void initState() {
     super.initState();
     _initializeWindow();
-    _loadAnimationType();
   }
   
   Future<void> _initializeWindow() async {
@@ -60,12 +56,6 @@ class _TodoPageState extends State<TodoPage> {
     super.dispose();
   }
 
-  void _loadAnimationType() async {
-    final animationType = await PreferencesService.getAnimationType();
-    setState(() {
-      _animationType = animationType;
-    });
-  }
 
   void _addTodo() {
     if (_controller.text.trim().isEmpty || _todoService == null) return;
@@ -99,14 +89,7 @@ class _TodoPageState extends State<TodoPage> {
   void _showSettings() {
     showDialog(
       context: context,
-      builder: (context) => SettingsDialog(
-        currentAnimationType: _animationType,
-        onAnimationTypeChanged: (type) {
-          setState(() {
-            _animationType = type;
-          });
-        },
-      ),
+      builder: (context) => const SettingsDialog(),
     );
   }
 
