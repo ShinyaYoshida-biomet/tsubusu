@@ -4,6 +4,10 @@ enum ThemeType {
   forest,
   ocean,
   sunset,
+  lavender,
+  rose,
+  cherry,
+  mint,
 }
 
 class AppTheme {
@@ -52,13 +56,13 @@ class AppTheme {
   static const ocean = AppTheme(
     name: 'Ocean',
     type: ThemeType.ocean,
-    primaryColor: Colors.blue,
-    backgroundColor: Color(0xFFF0F8FF),
+    primaryColor: Color(0xFF2196F3),
+    backgroundColor: Color(0xFFE3F2FD),
     cardColor: Colors.white,
     textColor: Colors.black87,
-    completedSectionColor: Color(0xFFE6F3FF),
+    completedSectionColor: Color(0xFFBBDEFB),
     completedTextColor: Colors.grey,
-    borderColor: Color(0xFFB3D9FF),
+    borderColor: Color(0xFF90CAF9),
     shadowColor: Color(0x0C000000),
     brightness: Brightness.light,
   );
@@ -67,13 +71,73 @@ class AppTheme {
   static const sunset = AppTheme(
     name: 'Sunset',
     type: ThemeType.sunset,
-    primaryColor: Colors.deepOrange,
-    backgroundColor: Color(0xFFFFF8F0),
+    primaryColor: Color(0xFFFF5722),
+    backgroundColor: Color(0xFFFBE9E7),
     cardColor: Colors.white,
     textColor: Colors.black87,
-    completedSectionColor: Color(0xFFFFE6D9),
+    completedSectionColor: Color(0xFFFFCCBC),
     completedTextColor: Colors.grey,
-    borderColor: Color(0xFFFFB380),
+    borderColor: Color(0xFFFF8A65),
+    shadowColor: Color(0x0C000000),
+    brightness: Brightness.light,
+  );
+
+  // Lavender theme (purple-based)
+  static const lavender = AppTheme(
+    name: 'Lavender',
+    type: ThemeType.lavender,
+    primaryColor: Color(0xFF9C27B0),
+    backgroundColor: Color(0xFFF3E5F5),
+    cardColor: Colors.white,
+    textColor: Colors.black87,
+    completedSectionColor: Color(0xFFE1BEE7),
+    completedTextColor: Colors.grey,
+    borderColor: Color(0xFFCE93D8),
+    shadowColor: Color(0x0C000000),
+    brightness: Brightness.light,
+  );
+
+  // Rose theme (pink-based)
+  static const rose = AppTheme(
+    name: 'Rose',
+    type: ThemeType.rose,
+    primaryColor: Color(0xFFE91E63),
+    backgroundColor: Color(0xFFFCE4EC),
+    cardColor: Colors.white,
+    textColor: Colors.black87,
+    completedSectionColor: Color(0xFFF8BBD0),
+    completedTextColor: Colors.grey,
+    borderColor: Color(0xFFF06292),
+    shadowColor: Color(0x0C000000),
+    brightness: Brightness.light,
+  );
+
+  // Cherry theme (red-based)
+  static const cherry = AppTheme(
+    name: 'Cherry',
+    type: ThemeType.cherry,
+    primaryColor: Colors.red,
+    backgroundColor: Color(0xFFFFF5F5),
+    cardColor: Colors.white,
+    textColor: Colors.black87,
+    completedSectionColor: Color(0xFFFFEBEE),
+    completedTextColor: Colors.grey,
+    borderColor: Color(0xFFEF9A9A),
+    shadowColor: Color(0x0C000000),
+    brightness: Brightness.light,
+  );
+
+  // Mint theme (mint green-based)
+  static const mint = AppTheme(
+    name: 'Mint',
+    type: ThemeType.mint,
+    primaryColor: Color(0xFF26A69A),
+    backgroundColor: Color(0xFFF0FFF4),
+    cardColor: Colors.white,
+    textColor: Colors.black87,
+    completedSectionColor: Color(0xFFE0F2F1),
+    completedTextColor: Colors.grey,
+    borderColor: Color(0xFF80CBC4),
     shadowColor: Color(0x0C000000),
     brightness: Brightness.light,
   );
@@ -82,6 +146,10 @@ class AppTheme {
     forest,
     ocean,
     sunset,
+    lavender,
+    rose,
+    cherry,
+    mint,
   ];
 
   static AppTheme getTheme(ThemeType type) {
@@ -92,6 +160,14 @@ class AppTheme {
         return ocean;
       case ThemeType.sunset:
         return sunset;
+      case ThemeType.lavender:
+        return lavender;
+      case ThemeType.rose:
+        return rose;
+      case ThemeType.cherry:
+        return cherry;
+      case ThemeType.mint:
+        return mint;
     }
   }
 
