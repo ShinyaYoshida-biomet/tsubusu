@@ -179,44 +179,45 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox>
               alignment: Alignment.center,
               clipBehavior: Clip.none, // Allow stars to overflow
               children: [
-                // Main checkbox - fixed size container
-                Opacity(
-                  opacity: opacity,
-                  child: Transform(
-                    alignment: Alignment.center,
-                    transform: Matrix4.identity()
-                      ..scale(widthScale, heightScale), // Scale based on animation state
-                    child: Container(
-                      width: 24,
-                      height: 24,
-                      decoration: BoxDecoration(
-                      color: backgroundColor,
-                      borderRadius: BorderRadius.circular(4),
-                      border: Border.all(
-                        color: widget.value 
-                            ? (widget.activeColor ?? Colors.teal)
-                            : Colors.grey[400]!,
-                        width: 2,
+                // Main checkbox - hidden during star burst animation
+                if (!_popController.isAnimating)
+                  Opacity(
+                    opacity: opacity,
+                    child: Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..scale(widthScale, heightScale), // Scale based on animation state
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        decoration: BoxDecoration(
+                        color: backgroundColor,
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(
+                          color: widget.value 
+                              ? (widget.activeColor ?? Colors.teal)
+                              : Colors.grey[400]!,
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          if (_squeezeController.isAnimating || widget.value)
+                            BoxShadow(
+                              color: (widget.activeColor ?? Colors.teal).withValues(alpha: 0.3),
+                              blurRadius: 8,
+                              spreadRadius: 2,
+                            ),
+                        ],
                       ),
-                      boxShadow: [
-                        if (_squeezeController.isAnimating || widget.value)
-                          BoxShadow(
-                            color: (widget.activeColor ?? Colors.teal).withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            spreadRadius: 2,
-                          ),
-                      ],
-                    ),
-                    child: widget.value
-                        ? Icon(
-                            Icons.check,
-                            size: 16,
-                            color: Colors.white,
-                          )
-                        : null,
+                      child: widget.value
+                          ? Icon(
+                              Icons.check,
+                              size: 16,
+                              color: Colors.white,
+                            )
+                          : null,
+                      ),
                     ),
                   ),
-                ),
                 // Star burst effect - positioned absolutely over checkbox
                 if (_popController.isAnimating)
                   Positioned.fill(
