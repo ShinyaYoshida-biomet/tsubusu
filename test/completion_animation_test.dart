@@ -4,7 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tsubusu/widgets/atoms/completion_animation.dart';
 
 void main() {
-  testWidgets('CompletionAnimation renders ConfettiPainter', (WidgetTester tester) async {
+  testWidgets('CompletionAnimation renders ConfettiPainter for confetti type', (WidgetTester tester) async {
     final animation = AlwaysStoppedAnimation<double>(0.5);
 
     await tester.pumpWidget(
