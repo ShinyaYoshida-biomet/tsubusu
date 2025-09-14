@@ -11,6 +11,7 @@ class TodoItem extends StatelessWidget {
   final VoidCallback onToggle;
   final VoidCallback onDelete;
   final int? reorderIndex; // For drag handle
+  final bool isCompleted; // Whether this item is in completed section
 
   const TodoItem({
     super.key,
@@ -18,6 +19,7 @@ class TodoItem extends StatelessWidget {
     required this.onToggle,
     required this.onDelete,
     this.reorderIndex,
+    this.isCompleted = false,
   });
 
   @override
@@ -42,6 +44,7 @@ class TodoItem extends StatelessWidget {
           value: todo.isCompleted,
           onChanged: (_) => onToggle(),
           activeColor: themeProvider.primaryColor,
+          isStatic: isCompleted, // Use static mode for completed section
         ),
         title: CustomText(
           todo.text,

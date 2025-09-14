@@ -145,6 +145,7 @@ class _TodoListState extends State<TodoList> {
                               todo: todo,
                               onToggle: () => widget.onToggleTodo(originalIndex),
                               onDelete: () => widget.onDeleteTodo(originalIndex),
+                              isCompleted: true, // Mark as completed section
                             );
                           },
                         ),
