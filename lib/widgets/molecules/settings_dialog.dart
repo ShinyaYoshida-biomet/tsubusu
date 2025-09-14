@@ -1,19 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../../models/animation_type.dart';
 import '../../models/app_theme.dart';
 import '../../providers/theme_provider.dart';
-import '../../services/preferences_service.dart';
 import '../atoms/custom_text.dart';
 
 class SettingsDialog extends StatefulWidget {
-  final AnimationType currentAnimationType;
-  final ValueChanged<AnimationType> onAnimationTypeChanged;
-
   const SettingsDialog({
     super.key,
-    required this.currentAnimationType,
-    required this.onAnimationTypeChanged,
   });
 
   @override
@@ -21,25 +14,13 @@ class SettingsDialog extends StatefulWidget {
 }
 
 class _SettingsDialogState extends State<SettingsDialog> {
-  late AnimationType _selectedAnimationType;
   late ThemeType _selectedThemeType;
 
   @override
   void initState() {
     super.initState();
-    _selectedAnimationType = widget.currentAnimationType;
     final themeProvider = Provider.of<ThemeProvider>(context, listen: false);
     _selectedThemeType = themeProvider.currentTheme.type;
-  }
-
-  void _handleAnimationTypeChange(AnimationType? type) async {
-    if (type != null) {
-      await PreferencesService.setAnimationType(type);
-      setState(() {
-        _selectedAnimationType = type;
-      });
-      widget.onAnimationTypeChanged(type);
-    }
   }
 
   void _handleThemeChange(ThemeType? themeType) async {
@@ -69,21 +50,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
                   value: type,
                   groupValue: _selectedThemeType,
                   onChanged: _handleThemeChange,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                )),
-            
-            const SizedBox(height: 24),
-            const Divider(),
-            const SizedBox(height: 16),
-            
-            // Animation Type Selection Section
-            const CustomText('Animation Type:', style: TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            ...AnimationType.values.map((type) => RadioListTile<AnimationType>(
-                  title: CustomText(type.displayName),
-                  value: type,
-                  groupValue: _selectedAnimationType,
-                  onChanged: _handleAnimationTypeChange,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 0),
                 )),
           ],

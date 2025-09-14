@@ -1,94 +1,29 @@
 import 'package:flutter/material.dart';
-import '../../models/animation_type.dart';
 
 class CompletionAnimation extends StatelessWidget {
   final Animation<double> animation;
-  final AnimationType animationType;
   final bool isSpecial;
 
   const CompletionAnimation({
     super.key,
     required this.animation,
-    required this.animationType,
     this.isSpecial = false,
   });
 
   @override
   Widget build(BuildContext context) {
     final double scale = isSpecial ? 2.0 : 1.0;
-    final int count = animationType == AnimationType.confetti
-        ? (isSpecial ? 35 : 20)
-        : (isSpecial ? 12 : 8);
+    final int count = isSpecial ? 35 : 20;
 
     return AnimatedBuilder(
       animation: animation,
       builder: (context, child) {
         return CustomPaint(
-          painter: animationType == AnimationType.confetti
-              ? ConfettiPainter(animation.value, scale: scale, count: count)
-              : BubblePopPainter(animation.value, scale: scale, count: count),
+          painter: ConfettiPainter(animation.value, scale: scale, count: count),
         );
       },
     );
   }
-}
-
-class BubblePopPainter extends CustomPainter {
-  final double progress;
-  final double scale;
-  final int count;
-
-  BubblePopPainter(this.progress, {required this.scale, required this.count});
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    if (progress == 0) return;
-
-    final centerX = size.width / 2;
-    final centerY = size.height / 2;
-    
-    for (int i = 0; i < count; i++) {
-      final angle = (i / count) * 2 * 3.14159;
-      
-      final bubbleProgress = progress;
-      final distance = (60 * bubbleProgress + 15) * scale;
-      final x = centerX + distance * (angle.toString().hashCode % 2 == 0 ? 1 : -1) * (i % 2 == 0 ? 1 : 0.7);
-      final y = centerY + distance * (angle.toString().hashCode % 2 == 0 ? 0.7 : 1) * (i % 2 == 0 ? -1 : 1);
-      
-      final bubblePaint = Paint()
-        ..color = Colors.teal.withValues(alpha: 0.3 * (1 - progress))
-        ..style = PaintingStyle.fill;
-      
-      final bubbleRadius = 15 * (1 + progress * 0.5) * scale;
-      canvas.drawCircle(Offset(x, y), bubbleRadius, bubblePaint);
-      
-      final highlightPaint = Paint()
-        ..color = Colors.white.withValues(alpha: 0.4 * (1 - progress))
-        ..style = PaintingStyle.fill;
-      
-      canvas.drawCircle(
-        Offset(x - bubbleRadius * 0.3, y - bubbleRadius * 0.3),
-        bubbleRadius * 0.3,
-        highlightPaint,
-      );
-    }
-    
-    if (progress < 0.3) {
-      final popProgress = progress / 0.3;
-      final popPaint = Paint()
-        ..color = Colors.teal.withValues(alpha: 0.2 * (1 - popProgress))
-        ..style = PaintingStyle.fill;
-      
-      canvas.drawCircle(
-        Offset(centerX, centerY),
-        40 * popProgress * scale,
-        popPaint,
-      );
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 class ConfettiPainter extends CustomPainter {
