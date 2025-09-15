@@ -7,6 +7,10 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write
+  packages: write
+
 jobs:
   build-macos:
     runs-on: macos-latest
