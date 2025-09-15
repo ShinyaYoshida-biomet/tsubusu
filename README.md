@@ -2,6 +2,10 @@
 
 A minimal ToDo app for macOS, inspired by Stickies but focused on task management.
 
+## Demo
+
+https://github.com/user-attachments/assets/772b74af-0626-4b41-9ece-1aaccb1ae112
+
 ## Download
 
 **📦 Ready-to-use binaries available!**
