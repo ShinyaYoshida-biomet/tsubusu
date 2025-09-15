@@ -17,8 +17,9 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'latest'
+          flutter-version: '3.27.0'
           channel: 'stable'
+          architecture: x64
 
       - name: Get dependencies
         run: flutter pub get
@@ -50,8 +51,9 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'latest'
+          flutter-version: '3.27.0'
           channel: 'stable'
+          architecture: x64
 
       - name: Get dependencies
         run: flutter pub get
