@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../constants/design_constants.dart';
 import '../../models/todo.dart';
 import '../../providers/theme_provider.dart';
+import '../../utils/todo_index_helper.dart';
 import '../molecules/todo_item.dart';
 
 class TodoList extends StatefulWidget {
@@ -46,31 +47,24 @@ class _TodoListState extends State<TodoList> {
               onReorder: (oldIndex, newIndex) {
                 if (widget.onReorderTodo != null) {
                   // Convert open task indices to original todo list indices
-                  final oldTodo = openTasks[oldIndex];
-                  final originalOldIndex = widget.todos.indexWhere((t) => t.id == oldTodo.id);
-                  
-                  // Adjust newIndex for ReorderableListView behavior
-                  if (newIndex > oldIndex) {
-                    newIndex--; // When moving down, newIndex is off by 1
-                  }
-                  
-                  // Calculate the new position in the original list
-                  int originalNewIndex;
-                  if (newIndex >= openTasks.length) {
-                    // Moving to the end of open tasks
-                    originalNewIndex = widget.todos.lastIndexWhere((t) => !t.isCompleted);
-                  } else {
-                    final newTodo = openTasks[newIndex];
-                    originalNewIndex = widget.todos.indexWhere((t) => t.id == newTodo.id);
-                  }
-                  
-                  widget.onReorderTodo!(originalOldIndex, originalNewIndex);
+                  final indices = TodoIndexHelper.calculateReorderIndices(
+                    widget.todos,
+                    openTasks,
+                    oldIndex,
+                    newIndex,
+                  );
+
+                  widget.onReorderTodo!(indices.originalOldIndex, indices.originalNewIndex);
                 }
               },
               itemBuilder: (context, index) {
                 final todo = openTasks[index];
-                final originalIndex = widget.todos.indexWhere((t) => t.id == todo.id);
-                
+                final originalIndex = TodoIndexHelper.convertToOriginalIndex(
+                  widget.todos,
+                  openTasks,
+                  index,
+                );
+
                 return TodoItem(
                   key: ValueKey(todo.id),
                   todo: todo,
@@ -140,8 +134,12 @@ class _TodoListState extends State<TodoList> {
                           itemCount: completedTasks.length,
                           itemBuilder: (context, index) {
                             final todo = completedTasks[index];
-                            final originalIndex = widget.todos.indexWhere((t) => t.id == todo.id);
-                            
+                            final originalIndex = TodoIndexHelper.convertToOriginalIndex(
+                              widget.todos,
+                              completedTasks,
+                              index,
+                            );
+
                             return TodoItem(
                               todo: todo,
                               onToggle: () => widget.onToggleTodo(originalIndex),
