@@ -161,23 +161,18 @@ class AppTheme {
     mint,
   ];
 
+  static final Map<ThemeType, AppTheme> _themeMap = {
+    ThemeType.forest: forest,
+    ThemeType.ocean: ocean,
+    ThemeType.sunset: sunset,
+    ThemeType.lavender: lavender,
+    ThemeType.rose: rose,
+    ThemeType.cherry: cherry,
+    ThemeType.mint: mint,
+  };
+
   static AppTheme getTheme(ThemeType type) {
-    switch (type) {
-      case ThemeType.forest:
-        return forest;
-      case ThemeType.ocean:
-        return ocean;
-      case ThemeType.sunset:
-        return sunset;
-      case ThemeType.lavender:
-        return lavender;
-      case ThemeType.rose:
-        return rose;
-      case ThemeType.cherry:
-        return cherry;
-      case ThemeType.mint:
-        return mint;
-    }
+    return _themeMap[type] ?? forest; // Default to forest if not found
   }
 
   ThemeData toThemeData() {
