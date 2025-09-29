@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../constants/design_constants.dart';
 import '../../models/todo.dart';
 import '../../providers/theme_provider.dart';
 import '../molecules/todo_item.dart';
@@ -103,7 +104,7 @@ class _TodoListState extends State<TodoList> {
                           height: 4,
                           width: 40,
                           decoration: BoxDecoration(
-                            color: themeProvider.completedTextColor.withValues(alpha: 0.5),
+                            color: themeProvider.completedTextColor.withValues(alpha: DesignConstants.opacityMedium),
                             borderRadius: BorderRadius.circular(2),
                           ),
                         ),
