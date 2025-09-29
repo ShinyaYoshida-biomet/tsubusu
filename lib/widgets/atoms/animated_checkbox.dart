@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
+import '../../constants/design_constants.dart';
 
 class AnimatedCheckbox extends StatefulWidget {
   final bool value;
@@ -192,7 +193,7 @@ class _AnimatedCheckboxState extends State<AnimatedCheckbox>
                         height: 24,
                         decoration: BoxDecoration(
                         color: backgroundColor,
-                        borderRadius: BorderRadius.circular(4),
+                        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusSmall),
                         border: Border.all(
                           color: widget.value 
                               ? (widget.activeColor ?? Colors.teal)

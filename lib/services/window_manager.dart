@@ -2,10 +2,13 @@ import 'dart:convert';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import '../constants/design_constants.dart';
 
 class WindowManager {
   static const String _windowTitle = 'Tsubusu';
   static const Size _defaultWindowSize = Size(300, 400);
+  static const Offset _defaultWindowPosition = Offset(100, 100);
+  static const Offset _offsetWindowPosition = Offset(130, 130);
 
   static Future<void> updateWindowTitle(String title) async {
     try {
@@ -23,7 +26,7 @@ class WindowManager {
         'timestamp': DateTime.now().millisecondsSinceEpoch,
       }));
 
-      final newPosition = position ?? const Offset(100, 100);
+      final newPosition = position ?? _defaultWindowPosition;
 
       await window.setFrame(newPosition & _defaultWindowSize);
       await window.setTitle(_windowTitle);
@@ -50,20 +53,20 @@ class WindowManager {
         PopupMenuItem(
           value: 'new_window',
           child: Row(
-            children: const [
-              Icon(Icons.add, size: 16),
-              SizedBox(width: 8),
-              Text('New Window'),
+            children: [
+              Icon(Icons.add, size: DesignConstants.iconSizeSmall),
+              SizedBox(width: DesignConstants.spacingSmall),
+              const Text('New Window'),
             ],
           ),
         ),
         PopupMenuItem(
           value: 'new_window_here',
           child: Row(
-            children: const [
-              Icon(Icons.open_in_new, size: 16),
-              SizedBox(width: 8),
-              Text('New Window Here'),
+            children: [
+              Icon(Icons.open_in_new, size: DesignConstants.iconSizeSmall),
+              SizedBox(width: DesignConstants.spacingSmall),
+              const Text('New Window Here'),
             ],
           ),
         ),
@@ -71,7 +74,7 @@ class WindowManager {
     ).then((value) {
       switch (value) {
         case 'new_window':
-          createNewWindow(position: const Offset(130, 130));
+          createNewWindow(position: _offsetWindowPosition);
           break;
         case 'new_window_here':
           createNewWindow();
