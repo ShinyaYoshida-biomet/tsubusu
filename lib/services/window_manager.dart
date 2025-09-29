@@ -6,8 +6,6 @@ import 'package:flutter/services.dart';
 class WindowManager {
   static const String _windowTitle = 'Tsubusu';
   static const Size _defaultWindowSize = Size(300, 400);
-  static const Size _minWindowSize = Size(250, 300);
-  static const Size _maxWindowSize = Size(600, 800);
 
   static Future<void> updateWindowTitle(String title) async {
     try {
@@ -36,11 +34,6 @@ class WindowManager {
       debugPrint('Failed to create new window: $e');
       return null;
     }
-  }
-
-  /// Gets the current window controller
-  static WindowController getCurrentWindow() {
-    return WindowController.fromWindowId(0);
   }
 
   /// Shows a window creation menu at the specified position
