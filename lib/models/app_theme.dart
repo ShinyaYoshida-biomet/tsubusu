@@ -12,6 +12,7 @@ enum ThemeType {
 
 class AppTheme {
   final String name;
+  final String displayName;
   final ThemeType type;
   final Color primaryColor;
   final Color backgroundColor;
@@ -25,6 +26,7 @@ class AppTheme {
 
   const AppTheme({
     required this.name,
+    required this.displayName,
     required this.type,
     required this.primaryColor,
     required this.backgroundColor,
@@ -40,6 +42,7 @@ class AppTheme {
   // Forest theme (current green-based UI)
   static const forest = AppTheme(
     name: 'Forest',
+    displayName: 'Forest (Green)',
     type: ThemeType.forest,
     primaryColor: Colors.teal,
     backgroundColor: Color(0xFFF5F5F5),
@@ -55,6 +58,7 @@ class AppTheme {
   // Ocean theme (blue-based)
   static const ocean = AppTheme(
     name: 'Ocean',
+    displayName: 'Ocean (Blue)',
     type: ThemeType.ocean,
     primaryColor: Color(0xFF2196F3),
     backgroundColor: Color(0xFFE3F2FD),
@@ -70,6 +74,7 @@ class AppTheme {
   // Sunset theme (orange/red-based)
   static const sunset = AppTheme(
     name: 'Sunset',
+    displayName: 'Sunset (Orange)',
     type: ThemeType.sunset,
     primaryColor: Color(0xFFFF5722),
     backgroundColor: Color(0xFFFBE9E7),
@@ -85,6 +90,7 @@ class AppTheme {
   // Lavender theme (purple-based)
   static const lavender = AppTheme(
     name: 'Lavender',
+    displayName: 'Lavender (Purple)',
     type: ThemeType.lavender,
     primaryColor: Color(0xFF9C27B0),
     backgroundColor: Color(0xFFF3E5F5),
@@ -100,6 +106,7 @@ class AppTheme {
   // Rose theme (pink-based)
   static const rose = AppTheme(
     name: 'Rose',
+    displayName: 'Rose (Pink)',
     type: ThemeType.rose,
     primaryColor: Color(0xFFE91E63),
     backgroundColor: Color(0xFFFCE4EC),
@@ -115,6 +122,7 @@ class AppTheme {
   // Cherry theme (red-based)
   static const cherry = AppTheme(
     name: 'Cherry',
+    displayName: 'Cherry (Red)',
     type: ThemeType.cherry,
     primaryColor: Colors.red,
     backgroundColor: Color(0xFFFFF5F5),
@@ -130,6 +138,7 @@ class AppTheme {
   // Mint theme (mint green-based)
   static const mint = AppTheme(
     name: 'Mint',
+    displayName: 'Mint (Green)',
     type: ThemeType.mint,
     primaryColor: Color(0xFF26A69A),
     backgroundColor: Color(0xFFF0FFF4),
