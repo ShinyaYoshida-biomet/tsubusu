@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../constants/storage_keys.dart';
 import '../../services/window_todo_service.dart';
 import '../../services/window_manager.dart';
 import '../organisms/app_header.dart';
@@ -28,7 +29,7 @@ class _TodoPageState extends State<TodoPage> {
   
   Future<void> _initializeWindow() async {
     final prefs = await SharedPreferences.getInstance();
-    final openWindows = prefs.getStringList('open_windows') ?? [];
+    final openWindows = prefs.getStringList(StorageKeys.openWindows) ?? [];
     
     // Find the lowest available window number
     int windowNumber = 1;
@@ -40,7 +41,7 @@ class _TodoPageState extends State<TodoPage> {
     
     // Add this window to the list of open windows
     openWindows.add(windowId);
-    await prefs.setStringList('open_windows', openWindows);
+    await prefs.setStringList(StorageKeys.openWindows, openWindows);
     
     _todoService = WindowTodoService(windowId);
     
@@ -69,9 +70,9 @@ class _TodoPageState extends State<TodoPage> {
   Future<void> _removeFromOpenWindows() async {
     if (_todoService != null) {
       final prefs = await SharedPreferences.getInstance();
-      final openWindows = prefs.getStringList('open_windows') ?? [];
+      final openWindows = prefs.getStringList(StorageKeys.openWindows) ?? [];
       openWindows.remove(_todoService!.windowId);
-      await prefs.setStringList('open_windows', openWindows);
+      await prefs.setStringList(StorageKeys.openWindows, openWindows);
     }
   }
 

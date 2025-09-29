@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/storage_keys.dart';
 import '../models/app_theme.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  static const String _themeKey = 'selected_theme';
   
   AppTheme _currentTheme = AppTheme.forest; // Default to Forest theme
   
@@ -16,7 +16,7 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> _loadTheme() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final themeTypeString = prefs.getString(_themeKey);
+      final themeTypeString = prefs.getString(StorageKeys.selectedTheme);
       
       if (themeTypeString != null) {
         final themeType = ThemeType.values.firstWhere(
@@ -36,7 +36,7 @@ class ThemeProvider extends ChangeNotifier {
   Future<void> setTheme(ThemeType themeType) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_themeKey, themeType.toString());
+      await prefs.setString(StorageKeys.selectedTheme, themeType.toString());
       
       _currentTheme = AppTheme.getTheme(themeType);
       
