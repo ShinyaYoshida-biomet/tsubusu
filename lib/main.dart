@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'providers/theme_provider.dart';
-import 'services/window_manager.dart';
 import 'widgets/pages/todo_page.dart';
 
 void main(List<String> args) {

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../constants/design_constants.dart';
 import '../../models/todo.dart';
 import '../../providers/theme_provider.dart';
 import '../atoms/icon_button_atom.dart';
@@ -27,10 +28,10 @@ class TodoItem extends StatelessWidget {
     final themeProvider = Provider.of<ThemeProvider>(context);
     
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: EdgeInsets.only(bottom: DesignConstants.spacingSmall),
       decoration: BoxDecoration(
         color: themeProvider.cardColor,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(DesignConstants.borderRadiusStandard),
         boxShadow: [
           BoxShadow(
             color: themeProvider.shadowColor,
@@ -60,17 +61,17 @@ class TodoItem extends StatelessWidget {
               icon: Icons.delete_outline,
               onPressed: onDelete,
               iconColor: themeProvider.completedTextColor,
-              size: 20,
+              size: DesignConstants.iconSizeStandard,
             ),
             // Hamburger menu for drag and drop (only for open tasks)
             if (!todo.isCompleted && reorderIndex != null) ...[
-              const SizedBox(width: 8),
+              SizedBox(width: DesignConstants.spacingSmall),
               ReorderableDragStartListener(
                 index: reorderIndex!,
                 child: Icon(
                   Icons.drag_handle,
                   color: themeProvider.completedTextColor,
-                  size: 20,
+                  size: DesignConstants.iconSizeStandard,
                 ),
               ),
             ],
