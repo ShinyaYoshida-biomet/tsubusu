@@ -1,15 +1,14 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../constants/storage_keys.dart';
 import '../models/todo.dart';
 
 class WindowTodoService extends ChangeNotifier {
   final String windowId;
-  late String _todosKey;
   List<Todo> _todos = [];
 
   WindowTodoService(this.windowId) {
-    _todosKey = 'todos_window_$windowId';
     _loadTodos();
   }
 
@@ -18,13 +17,15 @@ class WindowTodoService extends ChangeNotifier {
   Future<void> _loadTodos() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final todosJson = prefs.getString(_todosKey);
-      
+      final todosJson = prefs.getString(StorageKeys.todosForWindow(windowId));
+
       if (todosJson != null) {
         final List<dynamic> todosList = jsonDecode(todosJson);
         _todos = todosList.map((json) => Todo.fromJson(json)).toList();
-        notifyListeners();
+      } else {
+        _todos = [];
       }
+      notifyListeners();
     } catch (e) {
       debugPrint('Failed to load todos for window $windowId: $e');
     }
@@ -34,7 +35,7 @@ class WindowTodoService extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final todosJson = jsonEncode(_todos.map((todo) => todo.toJson()).toList());
-      await prefs.setString(_todosKey, todosJson);
+      await prefs.setString(StorageKeys.todosForWindow(windowId), todosJson);
     } catch (e) {
       debugPrint('Failed to save todos for window $windowId: $e');
     }

@@ -45,9 +45,9 @@ class _SettingsDialogState extends State<SettingsDialog> {
             // Theme Selection Section
             const CustomText('Theme:', style: TextStyle(fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            ...ThemeType.values.map((type) => RadioListTile<ThemeType>(
-                  title: CustomText(_getThemeDisplayName(type)),
-                  value: type,
+            ...AppTheme.predefinedThemes.map((theme) => RadioListTile<ThemeType>(
+                  title: CustomText(theme.displayName),
+                  value: theme.type,
                   groupValue: _selectedThemeType,
                   onChanged: _handleThemeChange,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 0),
@@ -62,24 +62,5 @@ class _SettingsDialogState extends State<SettingsDialog> {
         ),
       ],
     );
-  }
-
-  String _getThemeDisplayName(ThemeType type) {
-    switch (type) {
-      case ThemeType.forest:
-        return 'Forest (Green)';
-      case ThemeType.ocean:
-        return 'Ocean (Blue)';
-      case ThemeType.sunset:
-        return 'Sunset (Orange)';
-      case ThemeType.lavender:
-        return 'Lavender (Purple)';
-      case ThemeType.rose:
-        return 'Rose (Pink)';
-      case ThemeType.cherry:
-        return 'Cherry (Red)';
-      case ThemeType.mint:
-        return 'Mint (Green)';
-    }
   }
 }

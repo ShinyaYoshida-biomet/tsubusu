@@ -16,21 +16,6 @@ class CustomText extends StatelessWidget {
     this.overflow,
   });
 
-  CustomText.title(
-    this.text, {
-    super.key,
-    Color? color,
-    double? fontSize,
-    FontWeight? fontWeight,
-    this.textAlign,
-    this.maxLines,
-    this.overflow,
-  }) : style = TextStyle(
-          color: color,
-          fontSize: fontSize ?? 20,
-          fontWeight: fontWeight ?? FontWeight.bold,
-        );
-
   @override
   Widget build(BuildContext context) {
     return Text(
