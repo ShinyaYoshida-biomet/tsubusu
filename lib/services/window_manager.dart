@@ -14,7 +14,7 @@ class WindowManager {
     try {
       const MethodChannel('tsubusu/window_manager').invokeMethod('updateWindowTitle', {'title': title});
     } catch (e) {
-      print('Failed to update window title: $e');
+      debugPrint('Failed to update window title: $e');
     }
   }
 
