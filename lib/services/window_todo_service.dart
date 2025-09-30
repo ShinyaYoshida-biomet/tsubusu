@@ -18,12 +18,14 @@ class WindowTodoService extends ChangeNotifier {
     try {
       final prefs = await SharedPreferences.getInstance();
       final todosJson = prefs.getString(StorageKeys.todosForWindow(windowId));
-      
+
       if (todosJson != null) {
         final List<dynamic> todosList = jsonDecode(todosJson);
         _todos = todosList.map((json) => Todo.fromJson(json)).toList();
-        notifyListeners();
+      } else {
+        _todos = [];
       }
+      notifyListeners();
     } catch (e) {
       debugPrint('Failed to load todos for window $windowId: $e');
     }
