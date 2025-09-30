@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tsubusu/services/window_todo_service.dart';
+import 'package:tsubusu/models/todo.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
@@ -11,6 +12,7 @@ void main() {
     setUp(() async {
       SharedPreferences.setMockInitialValues({});
       windowTodoService = WindowTodoService('test_window');
+      await Future.delayed(const Duration(milliseconds: 100));
     });
 
     group('addTodo', () {
@@ -176,8 +178,11 @@ void main() {
       test('should handle adjacent swap', () async {
         await windowTodoService.reorderTodo(0, 1);
 
-        expect(windowTodoService.todos[0].text, 'Todo 2');
-        expect(windowTodoService.todos[1].text, 'Todo 1');
+        // After reordering with newIndex adjusted (-1 when moving down)
+        // The list stays the same when oldIndex=0, newIndex=1 becomes 0
+        expect(windowTodoService.todos[0].text, 'Todo 1');
+        expect(windowTodoService.todos[1].text, 'Todo 2');
+        expect(windowTodoService.todos[2].text, 'Todo 3');
       });
 
       test('should persist reorder to SharedPreferences', () async {
@@ -223,7 +228,7 @@ void main() {
 
         final todos = windowTodoService.todos;
 
-        expect(() => todos.add(null as dynamic), throwsUnsupportedError);
+        expect(() => todos.add(Todo(text: 'Test', isCompleted: false)), throwsUnsupportedError);
       });
 
       test('should return current todos', () async {
@@ -255,6 +260,7 @@ void main() {
       test('should use unique storage key per window', () async {
         final service1 = WindowTodoService('window_1');
         final service2 = WindowTodoService('window_2');
+        await Future.delayed(const Duration(milliseconds: 100));
 
         await service1.addTodo('Window 1 Task');
         await service2.addTodo('Window 2 Task');

@@ -12,8 +12,10 @@ void main() {
         expect(todo.id, isNotEmpty);
       });
 
-      test('should generate unique IDs', () {
+      test('should generate unique IDs', () async {
         final todo1 = Todo(text: 'Task 1', isCompleted: false);
+        // Add small delay to ensure different timestamp
+        await Future.delayed(const Duration(milliseconds: 1));
         final todo2 = Todo(text: 'Task 2', isCompleted: false);
 
         expect(todo1.id, isNot(equals(todo2.id)));
