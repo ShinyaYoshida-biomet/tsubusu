@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../constants/design_constants.dart';
 import '../atoms/icon_button_atom.dart';
 import '../molecules/add_todo_form.dart';
 
@@ -109,7 +110,7 @@ class _AppHeaderState extends State<AppHeader> {
                 icon: Icons.settings,
                 onPressed: widget.onShowSettings,
                 iconColor: Colors.white,
-                backgroundColor: Colors.white.withValues(alpha: 0.2),
+                backgroundColor: Colors.white.withValues(alpha: DesignConstants.opacityLight),
               ),
             ],
           ),

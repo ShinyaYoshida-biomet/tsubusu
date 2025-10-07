@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/window_registry_service.dart';
 import '../../services/window_todo_service.dart';
 import '../../services/window_manager.dart';
 import '../organisms/app_header.dart';
@@ -27,31 +27,22 @@ class _TodoPageState extends State<TodoPage> {
   }
   
   Future<void> _initializeWindow() async {
-    final prefs = await SharedPreferences.getInstance();
-    final openWindows = prefs.getStringList('open_windows') ?? [];
-    
-    // Find the lowest available window number
-    int windowNumber = 1;
-    while (openWindows.contains('window_$windowNumber')) {
-      windowNumber++;
-    }
-    
-    final windowId = 'window_$windowNumber';
-    
-    // Add this window to the list of open windows
-    openWindows.add(windowId);
-    await prefs.setStringList('open_windows', openWindows);
-    
+    // Get next available window ID
+    final windowId = await WindowRegistryService.getNextAvailableWindowId();
+
+    // Register this window
+    await WindowRegistryService.registerWindow(windowId);
+
     _todoService = WindowTodoService(windowId);
-    
+
     // Set unique window title
-    _windowTitle = windowNumber == 1 ? 'tsubusu' : 'tsubusu $windowNumber';
-    
+    _windowTitle = WindowRegistryService.getWindowTitle(windowId);
+
     // Update the actual window title
     WidgetsBinding.instance.addPostFrameCallback((_) {
       WindowManager.updateWindowTitle(_windowTitle);
     });
-    
+
     setState(() {
       _isInitialized = true;
     });
@@ -68,10 +59,7 @@ class _TodoPageState extends State<TodoPage> {
 
   Future<void> _removeFromOpenWindows() async {
     if (_todoService != null) {
-      final prefs = await SharedPreferences.getInstance();
-      final openWindows = prefs.getStringList('open_windows') ?? [];
-      openWindows.remove(_todoService!.windowId);
-      await prefs.setStringList('open_windows', openWindows);
+      await WindowRegistryService.unregisterWindow(_todoService!.windowId);
     }
   }
 
