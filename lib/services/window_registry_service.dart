@@ -2,18 +2,18 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/storage_keys.dart';
 
 class WindowRegistryService {
-  /// Finds the next available window ID by checking open windows
+  /// Gets the next window ID using an incrementing counter
+  /// This ensures each new window gets a unique ID and doesn't reuse old window data
   static Future<String> getNextAvailableWindowId() async {
     final prefs = await SharedPreferences.getInstance();
-    final openWindows = prefs.getStringList(StorageKeys.openWindows) ?? [];
 
-    // Find the lowest available window number
-    int windowNumber = 1;
-    while (openWindows.contains('window_$windowNumber')) {
-      windowNumber++;
-    }
+    // Get the next window counter (starts at 1 if not set)
+    int nextCounter = prefs.getInt(StorageKeys.nextWindowCounter) ?? 1;
 
-    return 'window_$windowNumber';
+    // Increment the counter for the next window
+    await prefs.setInt(StorageKeys.nextWindowCounter, nextCounter + 1);
+
+    return 'window_$nextCounter';
   }
 
   /// Registers a window as open

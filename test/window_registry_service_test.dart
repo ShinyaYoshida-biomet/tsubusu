@@ -11,33 +11,48 @@ void main() {
     });
 
     group('getNextAvailableWindowId', () {
-      test('should return window_1 when no windows are open', () async {
+      test('should return window_1 for first window', () async {
         final windowId = await WindowRegistryService.getNextAvailableWindowId();
         expect(windowId, 'window_1');
       });
 
-      test('should return window_2 when window_1 is already open', () async {
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_1']});
+      test('should return window_2 for second window', () async {
+        await WindowRegistryService.getNextAvailableWindowId(); // window_1
         final windowId = await WindowRegistryService.getNextAvailableWindowId();
         expect(windowId, 'window_2');
       });
 
-      test('should return window_3 when window_1 and window_2 are open', () async {
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_2']});
+      test('should return window_3 for third window', () async {
+        await WindowRegistryService.getNextAvailableWindowId(); // window_1
+        await WindowRegistryService.getNextAvailableWindowId(); // window_2
         final windowId = await WindowRegistryService.getNextAvailableWindowId();
         expect(windowId, 'window_3');
       });
 
-      test('should fill gaps in window numbers', () async {
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_2', 'window_3']});
-        final windowId = await WindowRegistryService.getNextAvailableWindowId();
-        expect(windowId, 'window_1');
+      test('should not reuse window IDs when windows are closed', () async {
+        // Create and register window_1
+        final windowId1 = await WindowRegistryService.getNextAvailableWindowId();
+        await WindowRegistryService.registerWindow(windowId1);
+        expect(windowId1, 'window_1');
+
+        // Close window_1
+        await WindowRegistryService.unregisterWindow(windowId1);
+
+        // Next window should be window_2, not reusing window_1
+        final windowId2 = await WindowRegistryService.getNextAvailableWindowId();
+        expect(windowId2, 'window_2');
       });
 
-      test('should handle non-sequential window numbers', () async {
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_3', 'window_5']});
+      test('should increment counter independently of open windows list', () async {
+        // Set counter to 5
+        SharedPreferences.setMockInitialValues({'next_window_counter': 5});
+
         final windowId = await WindowRegistryService.getNextAvailableWindowId();
-        expect(windowId, 'window_2');
+        expect(windowId, 'window_5');
+
+        // Next should be window_6
+        final windowId2 = await WindowRegistryService.getNextAvailableWindowId();
+        expect(windowId2, 'window_6');
       });
     });
 
