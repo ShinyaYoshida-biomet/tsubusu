@@ -13,6 +13,7 @@ void main(List<String> args) {
   // See: https://github.com/flutter/flutter/issues/167090
   //      https://github.com/flutter/flutter/issues/87391
   if (defaultTargetPlatform == TargetPlatform.macOS) {
+    // Handle FlutterError errors
     FlutterError.onError = (FlutterErrorDetails details) {
       final exception = details.exception.toString();
 
@@ -25,13 +26,37 @@ void main(List<String> args) {
       if (isKeyboardAssertionError) {
         // Known Flutter framework bug - log in debug mode but suppress error
         if (kDebugMode) {
-          debugPrint('[Suppressed] Known Flutter keyboard state issue - see https://github.com/flutter/flutter/issues/167090');
+          debugPrint('[Suppressed] Known Flutter keyboard state issue');
         }
         return;
       }
 
       // Re-throw all other errors normally
       FlutterError.presentError(details);
+    };
+
+    // Handle uncaught errors from Dart VM (includes engine-level errors)
+    PlatformDispatcher.instance.onError = (error, stack) {
+      final errorString = error.toString();
+
+      // Check for known keyboard state assertion errors
+      final isKeyboardAssertionError =
+          errorString.contains('_assertEventIsRegular') ||
+          (errorString.contains('HardwareKeyboard') &&
+           (errorString.contains('KeyDownEvent is dispatched') ||
+            errorString.contains('KeyUpEvent is dispatched') ||
+            errorString.contains('physical key is already pressed')));
+
+      if (isKeyboardAssertionError) {
+        // Suppress this specific error
+        if (kDebugMode) {
+          debugPrint('[Suppressed] Flutter keyboard assertion error');
+        }
+        return true; // Indicates error was handled
+      }
+
+      // Return false to let other errors be handled normally
+      return false;
     };
   }
 
