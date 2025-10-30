@@ -35,8 +35,8 @@ class _TodoPageState extends State<TodoPage> {
 
     _todoService = WindowTodoService(windowId);
 
-    // Set unique window title
-    _windowTitle = WindowRegistryService.getWindowTitle(windowId);
+    // Set unique window title based on position in open windows
+    _windowTitle = await WindowRegistryService.getWindowTitle(windowId);
 
     // Update the actual window title
     WidgetsBinding.instance.addPostFrameCallback((_) {

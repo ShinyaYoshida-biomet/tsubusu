@@ -57,7 +57,7 @@ void main() {
         await windowTodoService.addTodo('Persisted Task');
 
         final prefs = await SharedPreferences.getInstance();
-        final savedData = prefs.getString('todos_window_test_window');
+        final savedData = prefs.getString('todos_test_window');
 
         expect(savedData, isNotNull);
         expect(savedData, contains('Persisted Task'));
@@ -101,7 +101,7 @@ void main() {
         await windowTodoService.toggleTodo(0);
 
         final prefs = await SharedPreferences.getInstance();
-        final savedData = prefs.getString('todos_window_test_window');
+        final savedData = prefs.getString('todos_test_window');
 
         expect(savedData, contains('"isCompleted":true'));
       });
@@ -146,7 +146,7 @@ void main() {
         await windowTodoService.deleteTodo(1);
 
         final prefs = await SharedPreferences.getInstance();
-        final savedData = prefs.getString('todos_window_test_window');
+        final savedData = prefs.getString('todos_test_window');
 
         expect(savedData, isNot(contains('Task 2')));
       });
@@ -189,7 +189,7 @@ void main() {
         await windowTodoService.reorderTodo(0, 3);
 
         final prefs = await SharedPreferences.getInstance();
-        final savedData = prefs.getString('todos_window_test_window');
+        final savedData = prefs.getString('todos_test_window');
 
         expect(savedData, isNotNull);
       });
@@ -201,7 +201,7 @@ void main() {
 
         // Manually update SharedPreferences
         final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('todos_window_test_window',
+        await prefs.setString('todos_test_window',
           '[{"id":"1","text":"External Task","isCompleted":false}]');
 
         await windowTodoService.refresh();
@@ -214,7 +214,7 @@ void main() {
         await windowTodoService.addTodo('Task');
 
         final prefs = await SharedPreferences.getInstance();
-        await prefs.remove('todos_window_test_window');
+        await prefs.remove('todos_test_window');
 
         await windowTodoService.refresh();
 
@@ -246,7 +246,7 @@ void main() {
       test('should load existing todos on initialization', () async {
         // Setup existing data
         SharedPreferences.setMockInitialValues({
-          'todos_window_persist_test': '[{"id":"1","text":"Existing Task","isCompleted":true}]'
+          'todos_persist_test': '[{"id":"1","text":"Existing Task","isCompleted":true}]'
         });
 
         final service = WindowTodoService('persist_test');
