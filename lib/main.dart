@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
@@ -6,6 +7,33 @@ import 'widgets/pages/todo_page.dart';
 
 void main(List<String> args) {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Suppress known Flutter HardwareKeyboard assertion errors on macOS
+  // This is a known Flutter bug with multi-window apps and modifier keys
+  // See: https://github.com/flutter/flutter/issues/167090
+  //      https://github.com/flutter/flutter/issues/87391
+  if (defaultTargetPlatform == TargetPlatform.macOS) {
+    FlutterError.onError = (FlutterErrorDetails details) {
+      final exception = details.exception.toString();
+
+      // Check for known keyboard state assertion errors
+      final isKeyboardAssertionError =
+          exception.contains('_assertEventIsRegular') &&
+          (exception.contains('KeyDownEvent is dispatched') ||
+           exception.contains('KeyUpEvent is dispatched'));
+
+      if (isKeyboardAssertionError) {
+        // Known Flutter framework bug - log in debug mode but suppress error
+        if (kDebugMode) {
+          debugPrint('[Suppressed] Known Flutter keyboard state issue - see https://github.com/flutter/flutter/issues/167090');
+        }
+        return;
+      }
+
+      // Re-throw all other errors normally
+      FlutterError.presentError(details);
+    };
+  }
 
   if (args.firstOrNull == 'multi_window') {
     final windowId = int.parse(args[1]);
