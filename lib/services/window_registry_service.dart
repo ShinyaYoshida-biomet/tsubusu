@@ -4,7 +4,7 @@ import '../constants/storage_keys.dart';
 class WindowRegistryService {
   /// Gets a unique window ID using timestamp
   /// This ensures each new window gets a truly unique ID and never reuses old window data
-  /// Format: window_<timestamp>
+  /// Format: window_[timestamp]
   static Future<String> getNextAvailableWindowId() async {
     // Use current timestamp in milliseconds for guaranteed uniqueness
     final timestamp = DateTime.now().millisecondsSinceEpoch;
