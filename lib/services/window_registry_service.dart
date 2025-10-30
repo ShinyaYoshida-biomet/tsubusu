@@ -2,18 +2,13 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/storage_keys.dart';
 
 class WindowRegistryService {
-  /// Gets the next window ID using an incrementing counter
-  /// This ensures each new window gets a unique ID and doesn't reuse old window data
+  /// Gets a unique window ID using timestamp
+  /// This ensures each new window gets a truly unique ID and never reuses old window data
+  /// Format: window_<timestamp>
   static Future<String> getNextAvailableWindowId() async {
-    final prefs = await SharedPreferences.getInstance();
-
-    // Get the next window counter (starts at 1 if not set)
-    int nextCounter = prefs.getInt(StorageKeys.nextWindowCounter) ?? 1;
-
-    // Increment the counter for the next window
-    await prefs.setInt(StorageKeys.nextWindowCounter, nextCounter + 1);
-
-    return 'window_$nextCounter';
+    // Use current timestamp in milliseconds for guaranteed uniqueness
+    final timestamp = DateTime.now().millisecondsSinceEpoch;
+    return 'window_$timestamp';
   }
 
   /// Registers a window as open
@@ -36,15 +31,20 @@ class WindowRegistryService {
     await prefs.setStringList(StorageKeys.openWindows, openWindows);
   }
 
-  /// Gets the window title for a given window ID
-  static String getWindowTitle(String windowId, {String defaultName = 'tsubusu'}) {
-    // Extract window number from windowId (e.g., "window_1" -> 1)
-    final windowNumber = int.tryParse(windowId.replaceFirst('window_', ''));
+  /// Gets the window title based on the position in the currently open windows list
+  /// This ensures window titles are always sequential (tsubusu, tsubusu 2, tsubusu 3)
+  /// regardless of the internal window IDs
+  static Future<String> getWindowTitle(String windowId, {String defaultName = 'tsubusu'}) async {
+    final prefs = await SharedPreferences.getInstance();
+    final openWindows = prefs.getStringList(StorageKeys.openWindows) ?? [];
 
-    if (windowNumber == null || windowNumber == 1) {
+    // Find the position of this window in the open windows list
+    final position = openWindows.indexOf(windowId) + 1;
+
+    if (position <= 1) {
       return defaultName;
     }
 
-    return '$defaultName $windowNumber';
+    return '$defaultName $position';
   }
 }

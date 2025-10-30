@@ -11,48 +11,47 @@ void main() {
     });
 
     group('getNextAvailableWindowId', () {
-      test('should return window_1 for first window', () async {
+      test('should return window ID with timestamp format', () async {
         final windowId = await WindowRegistryService.getNextAvailableWindowId();
-        expect(windowId, 'window_1');
+        expect(windowId, startsWith('window_'));
+
+        // Extract timestamp and verify it's a valid number
+        final timestamp = windowId.replaceFirst('window_', '');
+        expect(int.tryParse(timestamp), isNotNull);
       });
 
-      test('should return window_2 for second window', () async {
-        await WindowRegistryService.getNextAvailableWindowId(); // window_1
-        final windowId = await WindowRegistryService.getNextAvailableWindowId();
-        expect(windowId, 'window_2');
+      test('should return unique window IDs', () async {
+        final windowId1 = await WindowRegistryService.getNextAvailableWindowId();
+        await Future.delayed(const Duration(milliseconds: 1)); // Ensure different timestamps
+        final windowId2 = await WindowRegistryService.getNextAvailableWindowId();
+
+        expect(windowId1, isNot(equals(windowId2)));
       });
 
-      test('should return window_3 for third window', () async {
-        await WindowRegistryService.getNextAvailableWindowId(); // window_1
-        await WindowRegistryService.getNextAvailableWindowId(); // window_2
-        final windowId = await WindowRegistryService.getNextAvailableWindowId();
-        expect(windowId, 'window_3');
-      });
-
-      test('should not reuse window IDs when windows are closed', () async {
-        // Create and register window_1
+      test('should never reuse window IDs (timestamp-based)', () async {
+        // Create and register window
         final windowId1 = await WindowRegistryService.getNextAvailableWindowId();
         await WindowRegistryService.registerWindow(windowId1);
-        expect(windowId1, 'window_1');
 
-        // Close window_1
+        // Close window
         await WindowRegistryService.unregisterWindow(windowId1);
 
-        // Next window should be window_2, not reusing window_1
+        // Next window should have different ID (different timestamp)
+        await Future.delayed(const Duration(milliseconds: 1));
         final windowId2 = await WindowRegistryService.getNextAvailableWindowId();
-        expect(windowId2, 'window_2');
+        expect(windowId1, isNot(equals(windowId2)));
       });
 
-      test('should increment counter independently of open windows list', () async {
-        // Set counter to 5
-        SharedPreferences.setMockInitialValues({'next_window_counter': 5});
+      test('should create window IDs with increasing timestamps', () async {
+        final windowId1 = await WindowRegistryService.getNextAvailableWindowId();
+        final timestamp1 = int.parse(windowId1.replaceFirst('window_', ''));
 
-        final windowId = await WindowRegistryService.getNextAvailableWindowId();
-        expect(windowId, 'window_5');
+        await Future.delayed(const Duration(milliseconds: 2));
 
-        // Next should be window_6
         final windowId2 = await WindowRegistryService.getNextAvailableWindowId();
-        expect(windowId2, 'window_6');
+        final timestamp2 = int.parse(windowId2.replaceFirst('window_', ''));
+
+        expect(timestamp2, greaterThan(timestamp1));
       });
     });
 
@@ -123,34 +122,41 @@ void main() {
     });
 
     group('getWindowTitle', () {
-      test('should return default name for window_1', () {
-        final title = WindowRegistryService.getWindowTitle('window_1');
+      test('should return default name for first window in list', () async {
+        SharedPreferences.setMockInitialValues({'open_windows': ['window_1']});
+        final title = await WindowRegistryService.getWindowTitle('window_1');
         expect(title, 'tsubusu');
       });
 
-      test('should return numbered title for window_2', () {
-        final title = WindowRegistryService.getWindowTitle('window_2');
+      test('should return numbered title based on position in list', () async {
+        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_2']});
+        final title = await WindowRegistryService.getWindowTitle('window_2');
         expect(title, 'tsubusu 2');
       });
 
-      test('should return numbered title for window_10', () {
-        final title = WindowRegistryService.getWindowTitle('window_10');
-        expect(title, 'tsubusu 10');
+      test('should handle window with high ID but low position', () async {
+        // window_10 is actually the 3rd window open
+        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_5', 'window_10']});
+        final title = await WindowRegistryService.getWindowTitle('window_10');
+        expect(title, 'tsubusu 3');
       });
 
-      test('should handle custom default name', () {
-        final title = WindowRegistryService.getWindowTitle('window_1', defaultName: 'MyApp');
+      test('should handle custom default name', () async {
+        SharedPreferences.setMockInitialValues({'open_windows': ['window_1']});
+        final title = await WindowRegistryService.getWindowTitle('window_1', defaultName: 'MyApp');
         expect(title, 'MyApp');
       });
 
-      test('should handle custom default name with number', () {
-        final title = WindowRegistryService.getWindowTitle('window_3', defaultName: 'MyApp');
+      test('should handle custom default name with position number', () async {
+        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_2', 'window_3']});
+        final title = await WindowRegistryService.getWindowTitle('window_3', defaultName: 'MyApp');
         expect(title, 'MyApp 3');
       });
 
-      test('should handle invalid window id format', () {
-        final title = WindowRegistryService.getWindowTitle('invalid_id');
-        expect(title, 'tsubusu');
+      test('should handle window not in open list', () async {
+        SharedPreferences.setMockInitialValues({'open_windows': ['window_1']});
+        final title = await WindowRegistryService.getWindowTitle('window_99');
+        expect(title, 'tsubusu'); // Returns default when not found (position = 0 + 1 = 1)
       });
     });
   });
