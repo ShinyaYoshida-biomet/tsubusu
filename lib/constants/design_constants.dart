@@ -15,5 +15,4 @@ class DesignConstants {
   // Icon sizes
   static const double iconSizeSmall = 16.0;
   static const double iconSizeStandard = 20.0;
-  static const double iconSizeLarge = 24.0;
 }
