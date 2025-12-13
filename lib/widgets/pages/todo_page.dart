@@ -17,7 +17,7 @@ class _TodoPageState extends State<TodoPage> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   WindowTodoService? _todoService;
-  String _windowTitle = 'Tsubusu';
+  String _windowTitle = 'tsubusu';
   bool _isInitialized = false;
 
   @override

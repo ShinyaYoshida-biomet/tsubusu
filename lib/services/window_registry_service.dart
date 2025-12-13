@@ -31,20 +31,10 @@ class WindowRegistryService {
     await prefs.setStringList(StorageKeys.openWindows, openWindows);
   }
 
-  /// Gets the window title based on the position in the currently open windows list
-  /// This ensures window titles are always sequential (tsubusu, tsubusu 2, tsubusu 3)
-  /// regardless of the internal window IDs
+  /// Gets the window title. Currently always returns the provided default name
+  /// (no automatic numbering); caller may override with a custom string.
   static Future<String> getWindowTitle(String windowId, {String defaultName = 'tsubusu'}) async {
-    final prefs = await SharedPreferences.getInstance();
-    final openWindows = prefs.getStringList(StorageKeys.openWindows) ?? [];
-
-    // Find the position of this window in the open windows list
-    final position = openWindows.indexOf(windowId) + 1;
-
-    if (position <= 1) {
-      return defaultName;
-    }
-
-    return '$defaultName $position';
+    // Keeping async signature for future flexibility and compatibility
+    return defaultName;
   }
 }

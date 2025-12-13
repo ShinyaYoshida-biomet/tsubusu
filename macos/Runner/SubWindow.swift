@@ -22,7 +22,7 @@ class SubWindow: NSWindow {
     self.maxSize = NSSize(width: 600, height: 800)
     
     // Set title
-    self.title = "Tsubusu"
+    self.title = "tsubusu"
 
     RegisterGeneratedPlugins(registry: flutterViewController)
 

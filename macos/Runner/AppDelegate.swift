@@ -147,10 +147,10 @@ class AppDelegate: FlutterAppDelegate {
     let flutterViewController = FlutterViewController()
     newWindow.contentViewController = flutterViewController
     
-    // Configure window with title bar visible and numbered name
+    // Configure window with title bar visible and consistent default title
     newWindow.titlebarAppearsTransparent = false
     newWindow.titleVisibility = .visible
-    newWindow.title = "tsubusu \(windowCounter)"
+    newWindow.title = "tsubusu"
     newWindow.minSize = NSSize(width: 250, height: 300)
     newWindow.maxSize = NSSize(width: 600, height: 800)
     
