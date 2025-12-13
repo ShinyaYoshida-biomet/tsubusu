@@ -122,41 +122,22 @@ void main() {
     });
 
     group('getWindowTitle', () {
-      test('should return default name for first window in list', () async {
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_1']});
-        final title = await WindowRegistryService.getWindowTitle('window_1');
+      test('should return default name regardless of position', () async {
+        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_2']});
+        final title = await WindowRegistryService.getWindowTitle('window_2');
         expect(title, 'tsubusu');
       });
 
-      test('should return numbered title based on position in list', () async {
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_2']});
-        final title = await WindowRegistryService.getWindowTitle('window_2');
-        expect(title, 'tsubusu 2');
-      });
-
-      test('should handle window with high ID but low position', () async {
-        // window_10 is actually the 3rd window open
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_5', 'window_10']});
-        final title = await WindowRegistryService.getWindowTitle('window_10');
-        expect(title, 'tsubusu 3');
-      });
-
-      test('should handle custom default name', () async {
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_1']});
-        final title = await WindowRegistryService.getWindowTitle('window_1', defaultName: 'MyApp');
+      test('should handle custom default name without numbering', () async {
+        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_2', 'window_3']});
+        final title = await WindowRegistryService.getWindowTitle('window_3', defaultName: 'MyApp');
         expect(title, 'MyApp');
       });
 
-      test('should handle custom default name with position number', () async {
-        SharedPreferences.setMockInitialValues({'open_windows': ['window_1', 'window_2', 'window_3']});
-        final title = await WindowRegistryService.getWindowTitle('window_3', defaultName: 'MyApp');
-        expect(title, 'MyApp 3');
-      });
-
-      test('should handle window not in open list', () async {
+      test('should return default when window not in list', () async {
         SharedPreferences.setMockInitialValues({'open_windows': ['window_1']});
         final title = await WindowRegistryService.getWindowTitle('window_99');
-        expect(title, 'tsubusu'); // Returns default when not found (position = 0 + 1 = 1)
+        expect(title, 'tsubusu');
       });
     });
   });
