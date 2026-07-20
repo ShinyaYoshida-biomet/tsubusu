@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
+import '../../models/todo_list_id.dart';
 import '../../services/window_registry_service.dart';
-import '../../services/window_todo_service.dart';
+import '../../services/todo_list_service.dart';
 import '../../services/window_manager.dart';
 import '../organisms/app_header.dart';
 import '../organisms/todo_list.dart';
@@ -16,7 +17,8 @@ class TodoPage extends StatefulWidget {
 class _TodoPageState extends State<TodoPage> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  WindowTodoService? _todoService;
+  TodoListService? _todoService;
+  String? _windowId;
   String _windowTitle = 'Tsubusu';
   bool _isInitialized = false;
 
@@ -25,15 +27,25 @@ class _TodoPageState extends State<TodoPage> {
     super.initState();
     _initializeWindow();
   }
-  
+
   Future<void> _initializeWindow() async {
     // Get next available window ID
     final windowId = await WindowRegistryService.getNextAvailableWindowId();
+    _windowId = windowId;
 
     // Register this window
     await WindowRegistryService.registerWindow(windowId);
 
-    _todoService = WindowTodoService(windowId);
+    // A desktop window presents a logical list; it does not own the list's
+    // identity or persistence. Mobile can create and present TodoListIds too.
+    final todoService = TodoListService(TodoListId.create());
+    _todoService = todoService;
+    await todoService.ready;
+
+    if (!mounted) {
+      await WindowRegistryService.unregisterWindow(windowId);
+      return;
+    }
 
     // Set unique window title based on position in open windows
     _windowTitle = await WindowRegistryService.getWindowTitle(windowId);
@@ -58,20 +70,18 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   Future<void> _removeFromOpenWindows() async {
-    if (_todoService != null) {
-      await WindowRegistryService.unregisterWindow(_todoService!.windowId);
+    if (_windowId != null) {
+      await WindowRegistryService.unregisterWindow(_windowId!);
     }
   }
 
-
   void _addTodo() {
     if (_controller.text.trim().isEmpty || _todoService == null) return;
-    
+
     _todoService!.addTodo(_controller.text.trim());
     _controller.clear();
     _focusNode.requestFocus();
   }
-
 
   void _deleteTodo(int index) {
     _todoService?.deleteTodo(index);
@@ -94,10 +104,7 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   void _showSettings() {
-    showDialog(
-      context: context,
-      builder: (context) => const SettingsDialog(),
-    );
+    showDialog(context: context, builder: (context) => const SettingsDialog());
   }
 
   @override
@@ -105,9 +112,7 @@ class _TodoPageState extends State<TodoPage> {
     if (!_isInitialized) {
       return const Scaffold(
         backgroundColor: Colors.grey,
-        body: Center(
-          child: CircularProgressIndicator(),
-        ),
+        body: Center(child: CircularProgressIndicator()),
       );
     }
 
