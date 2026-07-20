@@ -26,6 +26,52 @@ When you create a release (either method), the GitHub Action will:
 1. **Build macOS version**: Creates a `.dmg` file ready for distribution
 2. **Build Windows version**: Creates a `.zip` file with the executable and dependencies
 3. **Upload binaries**: Automatically attaches both files to the GitHub release
+4. **Check release size**: Fails the build if a distributed archive exceeds its
+   platform budget, and writes an archive/payload breakdown to the GitHub Actions
+   job summary.
+
+## Release Size Budget
+
+The distributed archives have the following budgets, measured in decimal MB
+(1 MB = 1,000,000 bytes):
+
+| Platform | Archive | Budget |
+| --- | --- | ---: |
+| macOS | `tsubusu-macos.dmg` | 20 MB |
+| Windows | `tsubusu-windows.zip` | 12 MB |
+
+The current baseline, from the v1.0.5 release, is 19.7 MB for the macOS DMG
+and 11.3 MB for the Windows ZIP. The initial goal is a safe 5–15% reduction
+only when measurement identifies content that can be removed without changing
+features, compatibility, signing, or maintainability. Flutter runtime files are
+expected to be a substantial and necessary part of both payloads.
+
+The initial inventory removed the unused direct `cupertino_icons` dependency;
+the app does not reference `CupertinoIcons`. Its actual archive-size effect is
+recorded by the next release job summary. No other dependency, platform runtime,
+or packaging content is removed without a matching usage and release-size check.
+
+Each release build reports the compressed archive size and a breakdown of the
+uncompressed app payload in its job summary. The latter is diagnostic: it makes
+the largest runtime, executable, asset, plugin, symbol, and packaging components
+visible, but it is not compared directly with the compressed archive budget.
+
+To reproduce the check locally after creating a release archive, run:
+
+```bash
+dart run tool/release_size_report.dart \
+  --platform macos \
+  --artifact tsubusu-macos.dmg \
+  --payload build/macos/Build/Products/Release/tsubusu.app \
+  --budget-mb 20
+```
+
+For a Windows release build, run the same command with `--platform windows`,
+`--artifact tsubusu-windows.zip`,
+`--payload build/windows/x64/runner/Release`, and `--budget-mb 12`.
+
+If a feature genuinely requires a budget exception, document the measured
+increase and reason in its pull request before changing the workflow budget.
 
 ## Binary Distribution
 

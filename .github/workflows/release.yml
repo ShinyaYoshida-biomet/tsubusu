@@ -40,6 +40,14 @@ jobs:
           # Create DMG
           hdiutil create -volname "tsubusu" -srcfolder dmg_contents -ov -format UDZO tsubusu-macos.dmg
 
+      - name: Report and enforce macOS release size
+        run: |
+          dart run tool/release_size_report.dart \
+            --platform macos \
+            --artifact tsubusu-macos.dmg \
+            --payload build/macos/Build/Products/Release/tsubusu.app \
+            --budget-mb 20
+
       - name: Upload macOS artifact
         uses: actions/upload-artifact@v4
         with:
@@ -69,6 +77,15 @@ jobs:
         run: |
           cd build/windows/x64/runner/Release
           Compress-Archive -Path . -DestinationPath ../../../../../tsubusu-windows.zip
+        shell: pwsh
+
+      - name: Report and enforce Windows release size
+        run: |
+          dart run tool/release_size_report.dart `
+            --platform windows `
+            --artifact tsubusu-windows.zip `
+            --payload build/windows/x64/runner/Release `
+            --budget-mb 12
         shell: pwsh
 
       - name: Upload Windows artifact
