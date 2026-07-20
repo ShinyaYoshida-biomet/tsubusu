@@ -191,15 +191,18 @@ class _TodoListState extends State<TodoList> {
                   ),
               itemBuilder: (context, index) {
                 final child = children[index];
-                return TodoItem(
+                return Padding(
                   key: ValueKey(child.id),
-                  todo: child,
-                  isSubtask: true,
-                  onToggle: () => widget.onToggleTodo(child.id),
-                  onDelete: () => widget.onDeleteTodo(child.id),
-                  onEdit: (text) => widget.onEditTodo(child.id, text),
-                  reorderIndex: completed ? null : index,
-                  isCompleted: completed,
+                  padding: const EdgeInsets.only(left: 24, right: 24),
+                  child: TodoItem(
+                    todo: child,
+                    isSubtask: true,
+                    onToggle: () => widget.onToggleTodo(child.id),
+                    onDelete: () => widget.onDeleteTodo(child.id),
+                    onEdit: (text) => widget.onEditTodo(child.id, text),
+                    reorderIndex: completed ? null : index,
+                    isCompleted: completed,
+                  ),
                 );
               },
             ),
@@ -258,7 +261,6 @@ class _SubtaskInputState extends State<_SubtaskInput> {
     autofocus: true,
     decoration: const InputDecoration(hintText: 'サブタスクを追加…', isDense: true),
     onSubmitted: widget.onSubmit,
-    onEditingComplete: () => widget.onSubmit(_controller.text),
     onTapOutside: (_) => widget.onCancel(),
   );
 }
