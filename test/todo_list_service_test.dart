@@ -52,6 +52,57 @@ void main() {
       expect(todoListService.todos.first.isCompleted, isTrue);
     });
 
+    test('supports subtasks and parent completion rules', () async {
+      await todoListService.addTodo('Project');
+      final parent = todoListService.todos.single;
+
+      await todoListService.addSubtask(parent.id, 'Design');
+      await todoListService.addSubtask(parent.id, 'Build');
+      final children = todoListService.childrenOf(parent.id);
+
+      expect(children, hasLength(2));
+      expect(children.every((todo) => todo.parentId == parent.id), isTrue);
+
+      await todoListService.toggleTodoById(children.first.id);
+      expect(todoListService.todoById(parent.id)!.isCompleted, isFalse);
+
+      await todoListService.toggleTodoById(children.last.id);
+      expect(todoListService.todoById(parent.id)!.isCompleted, isTrue);
+
+      await todoListService.toggleTodoById(parent.id);
+      expect(
+        todoListService
+            .childrenOf(parent.id)
+            .every((todo) => !todo.isCompleted),
+        isTrue,
+      );
+      expect(todoListService.todoById(parent.id)!.isCompleted, isFalse);
+    });
+
+    test('deleting a parent deletes its subtasks', () async {
+      await todoListService.addTodo('Project');
+      final parent = todoListService.todos.single;
+      await todoListService.addSubtask(parent.id, 'Child');
+
+      await todoListService.deleteTodoById(parent.id);
+
+      expect(todoListService.todos, isEmpty);
+    });
+
+    test('adding a subtask reopens a completed parent', () async {
+      await todoListService.addTodo('Project');
+      final parent = todoListService.todos.single;
+      await todoListService.addSubtask(parent.id, 'Child');
+      final child = todoListService.childrenOf(parent.id).single;
+      await todoListService.toggleTodoById(child.id);
+      expect(todoListService.todoById(parent.id)!.isCompleted, isTrue);
+
+      await todoListService.addSubtask(parent.id, 'New child');
+
+      expect(todoListService.todoById(parent.id)!.isCompleted, isFalse);
+      expect(todoListService.childrenOf(parent.id), hasLength(2));
+    });
+
     test('keeps lists isolated without referring to desktop windows', () async {
       final anotherList = TodoListService(TodoListId.create());
       await anotherList.ready;

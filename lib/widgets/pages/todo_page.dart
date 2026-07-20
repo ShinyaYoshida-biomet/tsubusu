@@ -82,16 +82,24 @@ class _TodoPageState extends State<TodoPage> {
     _focusNode.requestFocus();
   }
 
-  void _deleteTodo(int index) {
-    _todoService?.deleteTodo(index);
+  void _deleteTodo(String id) {
+    _todoService?.deleteTodoById(id);
   }
 
-  void _reorderTodo(int oldIndex, int newIndex) {
-    _todoService?.reorderTodo(oldIndex, newIndex);
+  void _reorderSiblings(String? parentId, int oldIndex, int newIndex) {
+    _todoService?.reorderSiblings(parentId, oldIndex, newIndex);
   }
 
-  void _toggleTodoFromIndex(int index) {
-    _todoService?.toggleTodo(index);
+  void _toggleTodo(String id) {
+    _todoService?.toggleTodoById(id);
+  }
+
+  void _addSubtask(String parentId, String text) {
+    _todoService?.addSubtask(parentId, text);
+  }
+
+  void _editTodo(String id, String text) {
+    _todoService?.updateTodoText(id, text);
   }
 
   void _onTitleChanged(String newTitle) {
@@ -133,9 +141,11 @@ class _TodoPageState extends State<TodoPage> {
               builder: (context, child) {
                 return TodoList(
                   todos: _todoService!.todos,
-                  onToggleTodo: _toggleTodoFromIndex,
+                  onToggleTodo: _toggleTodo,
                   onDeleteTodo: _deleteTodo,
-                  onReorderTodo: _reorderTodo,
+                  onReorderSiblings: _reorderSiblings,
+                  onAddSubtask: _addSubtask,
+                  onEditTodo: _editTodo,
                 );
               },
             ),

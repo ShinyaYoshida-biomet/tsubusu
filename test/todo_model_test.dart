@@ -22,7 +22,11 @@ void main() {
       });
 
       test('should accept custom ID', () {
-        final todo = Todo(text: 'Test Task', isCompleted: false, id: 'custom_id');
+        final todo = Todo(
+          text: 'Test Task',
+          isCompleted: false,
+          id: 'custom_id',
+        );
 
         expect(todo.id, 'custom_id');
       });
@@ -38,7 +42,11 @@ void main() {
       late Todo originalTodo;
 
       setUp(() {
-        originalTodo = Todo(text: 'Original', isCompleted: false, id: 'test_id');
+        originalTodo = Todo(
+          text: 'Original',
+          isCompleted: false,
+          id: 'test_id',
+        );
       });
 
       test('should copy with new text', () {
@@ -124,6 +132,18 @@ void main() {
         expect(json.containsKey('isCompleted'), true);
         expect(json.containsKey('id'), true);
       });
+
+      test('should preserve parent relationship', () {
+        final todo = Todo(
+          text: 'Child task',
+          isCompleted: false,
+          id: 'child',
+          parentId: 'parent',
+        );
+
+        expect(todo.toJson()['parentId'], 'parent');
+        expect(Todo.fromJson(todo.toJson()).parentId, 'parent');
+      });
     });
 
     group('fromJson', () {
@@ -153,6 +173,16 @@ void main() {
         expect(todo.isCompleted, true);
       });
 
+      test('should load legacy todo without parent relationship', () {
+        final todo = Todo.fromJson({
+          'text': 'Legacy task',
+          'isCompleted': false,
+          'id': 'legacy',
+        });
+
+        expect(todo.parentId, isNull);
+      });
+
       test('should handle special characters in text', () {
         final json = {
           'text': 'Task with "quotes" and \\backslash',
@@ -168,7 +198,11 @@ void main() {
 
     group('JSON round-trip', () {
       test('should preserve data through toJson and fromJson', () {
-        final original = Todo(text: 'Round Trip', isCompleted: true, id: 'round_trip');
+        final original = Todo(
+          text: 'Round Trip',
+          isCompleted: true,
+          id: 'round_trip',
+        );
         final json = original.toJson();
         final restored = Todo.fromJson(json);
 
