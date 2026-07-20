@@ -73,7 +73,7 @@ String _requiredOption(Map<String, String> options, String name) {
   if (value == null || value.isEmpty) {
     _fail('Missing required --$name option.');
   }
-  return value!;
+  return value;
 }
 
 Never _fail(String message) => throw ArgumentError(message);
