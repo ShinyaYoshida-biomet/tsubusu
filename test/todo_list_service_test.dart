@@ -79,6 +79,16 @@ void main() {
       expect(todoListService.todoById(parent.id)!.isCompleted, isFalse);
     });
 
+    test('adds one subtask exactly once', () async {
+      await todoListService.addTodo('Project');
+      final parent = todoListService.todos.single;
+
+      await todoListService.addSubtask(parent.id, 'Single child');
+
+      expect(todoListService.childrenOf(parent.id), hasLength(1));
+      expect(todoListService.childrenOf(parent.id).single.text, 'Single child');
+    });
+
     test('deleting a parent deletes its subtasks', () async {
       await todoListService.addTodo('Project');
       final parent = todoListService.todos.single;

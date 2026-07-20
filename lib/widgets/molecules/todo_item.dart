@@ -88,6 +88,11 @@ class _TodoItemState extends State<TodoItem> {
         position.dy,
       ),
       items: [
+        if (widget.hasChildren && widget.onToggleExpanded != null)
+          PopupMenuItem(
+            value: 'collapse',
+            child: Text(widget.isExpanded ? '折りたたむ' : '展開する'),
+          ),
         if (widget.onAddSubtask != null)
           const PopupMenuItem(value: 'add', child: Text('サブタスクを追加')),
         if (widget.onEdit != null)
@@ -97,6 +102,8 @@ class _TodoItemState extends State<TodoItem> {
     ).then((value) {
       if (!mounted) return;
       switch (value) {
+        case 'collapse':
+          widget.onToggleExpanded?.call();
         case 'add':
           widget.onAddSubtask?.call();
         case 'edit':
@@ -152,18 +159,6 @@ class _TodoItemState extends State<TodoItem> {
             leading: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (widget.hasChildren)
-                  IconButton(
-                    icon: Icon(
-                      widget.isExpanded
-                          ? Icons.keyboard_arrow_down
-                          : Icons.chevron_right,
-                    ),
-                    onPressed: widget.onToggleExpanded,
-                    tooltip: widget.isExpanded ? '折りたたむ' : '展開する',
-                  )
-                else if (!widget.isSubtask)
-                  const SizedBox(width: 48),
                 AnimatedCheckbox(
                   value: widget.todo.isCompleted,
                   onChanged: (_) => widget.onToggle(),
