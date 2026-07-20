@@ -9,6 +9,9 @@ const _normalTargets = <String>[
 ];
 
 const _fullOnlyTargets = <String>[
+  'android/.gradle',
+  'ios/Flutter/ephemeral',
+  'ios/Pods',
   'macos/Flutter/ephemeral',
   'macos/Pods',
   'windows/flutter/ephemeral',
