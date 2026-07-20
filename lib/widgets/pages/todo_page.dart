@@ -29,12 +29,11 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   Future<void> _initializeWindow() async {
-    // Get next available window ID
-    final windowId = await WindowRegistryService.getNextAvailableWindowId();
-    _windowId = windowId;
-
-    // Register this window
-    await WindowRegistryService.registerWindow(windowId);
+    if (WindowManager.supportsWindowManagement) {
+      final windowId = await WindowRegistryService.getNextAvailableWindowId();
+      _windowId = windowId;
+      await WindowRegistryService.registerWindow(windowId);
+    }
 
     // A desktop window presents a logical list; it does not own the list's
     // identity or persistence. Mobile can create and present TodoListIds too.
@@ -43,17 +42,17 @@ class _TodoPageState extends State<TodoPage> {
     await todoService.ready;
 
     if (!mounted) {
-      await WindowRegistryService.unregisterWindow(windowId);
+      await _removeFromOpenWindows();
       return;
     }
 
-    // Set unique window title based on position in open windows
-    _windowTitle = await WindowRegistryService.getWindowTitle(windowId);
-
-    // Update the actual window title
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      WindowManager.updateWindowTitle(_windowTitle);
-    });
+    if (_windowId != null) {
+      // Window registration and native title changes are desktop-only.
+      _windowTitle = await WindowRegistryService.getWindowTitle(_windowId!);
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        WindowManager.updateWindowTitle(_windowTitle);
+      });
+    }
 
     setState(() {
       _isInitialized = true;
@@ -118,28 +117,30 @@ class _TodoPageState extends State<TodoPage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[100],
-      body: Column(
-        children: [
-          AppHeader(
-            controller: _controller,
-            focusNode: _focusNode,
-            onAddTodo: _addTodo,
-            onShowSettings: _showSettings,
-            windowTitle: _windowTitle,
-            onTitleChanged: _onTitleChanged,
-          ),
-          ListenableBuilder(
-            listenable: _todoService!,
-            builder: (context, child) {
-              return TodoList(
-                todos: _todoService!.todos,
-                onToggleTodo: _toggleTodoFromIndex,
-                onDeleteTodo: _deleteTodo,
-                onReorderTodo: _reorderTodo,
-              );
-            },
-          ),
-        ],
+      body: SafeArea(
+        child: Column(
+          children: [
+            AppHeader(
+              controller: _controller,
+              focusNode: _focusNode,
+              onAddTodo: _addTodo,
+              onShowSettings: _showSettings,
+              windowTitle: _windowTitle,
+              onTitleChanged: _onTitleChanged,
+            ),
+            ListenableBuilder(
+              listenable: _todoService!,
+              builder: (context, child) {
+                return TodoList(
+                  todos: _todoService!.todos,
+                  onToggleTodo: _toggleTodoFromIndex,
+                  onDeleteTodo: _deleteTodo,
+                  onReorderTodo: _reorderTodo,
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

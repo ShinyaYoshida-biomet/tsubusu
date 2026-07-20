@@ -34,6 +34,8 @@ class _TodoListState extends State<TodoList> {
     final themeProvider = Provider.of<ThemeProvider>(context);
     final openTasks = widget.todos.where((todo) => !todo.isCompleted).toList();
     final completedTasks = widget.todos.where((todo) => todo.isCompleted).toList();
+    final availableHeight = MediaQuery.sizeOf(context).height - MediaQuery.viewInsetsOf(context).bottom;
+    final maxCompletedHeight = (availableHeight * 0.45).clamp(_minCompletedHeight, _maxCompletedHeight);
     
     return Expanded(
       child: Column(
@@ -87,7 +89,7 @@ class _TodoListState extends State<TodoList> {
                     onPanUpdate: (details) {
                       setState(() {
                         _completedSectionHeight = (_completedSectionHeight - details.delta.dy)
-                            .clamp(_minCompletedHeight, _maxCompletedHeight);
+                            .clamp(_minCompletedHeight, maxCompletedHeight);
                       });
                     },
                     child: Container(
@@ -108,7 +110,7 @@ class _TodoListState extends State<TodoList> {
                 ),
                 // Completed tasks container
                 Container(
-                  height: _completedSectionHeight,
+                  height: _completedSectionHeight.clamp(_minCompletedHeight, maxCompletedHeight),
                   decoration: BoxDecoration(
                     color: themeProvider.completedSectionColor,
                     border: Border(

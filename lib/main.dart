@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import 'providers/theme_provider.dart';
+import 'services/window_manager.dart';
 import 'widgets/pages/todo_page.dart';
 
 void main(List<String> args) {
@@ -21,7 +22,7 @@ void main(List<String> args) {
       final isKeyboardAssertionError =
           exception.contains('_assertEventIsRegular') &&
           (exception.contains('KeyDownEvent is dispatched') ||
-           exception.contains('KeyUpEvent is dispatched'));
+              exception.contains('KeyUpEvent is dispatched'));
 
       if (isKeyboardAssertionError) {
         // Known Flutter framework bug - log in debug mode but suppress error
@@ -43,9 +44,9 @@ void main(List<String> args) {
       final isKeyboardAssertionError =
           errorString.contains('_assertEventIsRegular') ||
           (errorString.contains('HardwareKeyboard') &&
-           (errorString.contains('KeyDownEvent is dispatched') ||
-            errorString.contains('KeyUpEvent is dispatched') ||
-            errorString.contains('physical key is already pressed')));
+              (errorString.contains('KeyDownEvent is dispatched') ||
+                  errorString.contains('KeyUpEvent is dispatched') ||
+                  errorString.contains('physical key is already pressed')));
 
       if (isKeyboardAssertionError) {
         // Suppress this specific error
@@ -60,9 +61,12 @@ void main(List<String> args) {
     };
   }
 
-  if (args.firstOrNull == 'multi_window') {
+  if (WindowManager.supportsWindowManagement &&
+      args.firstOrNull == 'multi_window') {
     final windowId = int.parse(args[1]);
-    runApp(TsubusuWindow(windowController: WindowController.fromWindowId(windowId)));
+    runApp(
+      TsubusuWindow(windowController: WindowController.fromWindowId(windowId)),
+    );
   } else {
     runApp(const TsubusuWindow());
   }
