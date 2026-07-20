@@ -24,6 +24,38 @@ To run the app:
 flutter run -d macos
 ```
 
+### Generated artifacts and cleanup
+
+Build output and tool state are generated locally and must not be committed.
+Use the cleanup tool instead of a broad command such as `git clean`, which can
+remove unrelated ignored files.
+
+For the usual clean build, remove only Flutter/Dart build state:
+
+```bash
+dart run tool/clean_generated.dart --normal
+flutter pub get
+flutter run -d macos
+```
+
+For a fully reproducible desktop environment, also remove generated CocoaPods
+and platform ephemeral files before regenerating them from the committed
+lockfiles on the next platform build:
+
+```bash
+dart run tool/clean_generated.dart --full
+flutter pub get
+flutter run -d macos
+```
+
+Add `--dry-run` to either command to review the exact paths first. Normal
+cleanup removes `build/`, `coverage/`, `.dart_tool/`, and Flutter's generated
+plugin state. Full cleanup additionally removes only `macos/Pods/`,
+`macos/Flutter/ephemeral/`, and `windows/flutter/ephemeral/`. The commands do
+not target source files, `pubspec.lock`, `macos/Podfile.lock`, Xcode project
+configuration, entitlements/signing configuration, credentials, or app user
+data.
+
 ## Requirements
 
 - Flutter SDK (3.29.3 or later)
