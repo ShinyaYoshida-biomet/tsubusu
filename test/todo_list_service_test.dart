@@ -36,6 +36,27 @@ void main() {
       expect(todoListService.todos, isEmpty);
     });
 
+    test('edits and persists a todo title by ID', () async {
+      await todoListService.addTodo('Original title');
+      final todoId = todoListService.todos.single.id;
+
+      await todoListService.updateTodoText(todoId, '  Updated title  ');
+
+      expect(todoListService.todoById(todoId)!.text, 'Updated title');
+      final reloadedService = TodoListService(listId);
+      await reloadedService.ready;
+      expect(reloadedService.todoById(todoId)!.text, 'Updated title');
+    });
+
+    test('does not replace a title with blank text', () async {
+      await todoListService.addTodo('Keep this title');
+      final todoId = todoListService.todos.single.id;
+
+      await todoListService.updateTodoText(todoId, '   ');
+
+      expect(todoListService.todoById(todoId)!.text, 'Keep this title');
+    });
+
     test('toggles, deletes, and reorders todos', () async {
       await todoListService.addTodo('First');
       await todoListService.addTodo('Second');
