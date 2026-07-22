@@ -62,16 +62,36 @@ class _TodoListState extends State<TodoList> {
       child: Column(
         children: [
           Expanded(
-            child: ReorderableListView.builder(
-              padding: const EdgeInsets.all(8),
-              buildDefaultDragHandles: false,
-              itemCount: openRoots.length,
-              onReorder:
-                  (oldIndex, newIndex) =>
-                      widget.onReorderSiblings?.call(null, oldIndex, newIndex),
-              itemBuilder:
-                  (context, index) =>
-                      _buildGroup(context, openRoots[index], index),
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(top: 8, bottom: 4),
+                  child: Text(
+                    'Uncompleted (${openRoots.length})',
+                    style: TextStyle(
+                      color: themeProvider.textColor,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ReorderableListView.builder(
+                    padding: const EdgeInsets.all(8),
+                    buildDefaultDragHandles: false,
+                    itemCount: openRoots.length,
+                    onReorder:
+                        (oldIndex, newIndex) => widget.onReorderSiblings?.call(
+                          null,
+                          oldIndex,
+                          newIndex,
+                        ),
+                    itemBuilder:
+                        (context, index) =>
+                            _buildGroup(context, openRoots[index], index),
+                  ),
+                ),
+              ],
             ),
           ),
           if (completedRoots.isNotEmpty)
