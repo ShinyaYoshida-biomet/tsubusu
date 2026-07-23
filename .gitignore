@@ -11,6 +11,8 @@
 .svn/
 .swiftpm/
 migrate_working_dir/
+.config
+ios/fastlane/report.xml
 
 # IntelliJ related
 *.iml
