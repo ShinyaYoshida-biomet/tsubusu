@@ -46,4 +46,40 @@ void main() {
     expect(find.text('Uncompleted (2)'), findsOneWidget);
     expect(find.text('Completed (1)'), findsOneWidget);
   });
+
+  testWidgets('animates and toggles when the card body is tapped', (
+    tester,
+  ) async {
+    String? toggledTodoId;
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                TodoList(
+                  todos: [
+                    Todo(id: 'open-1', text: 'Open one', isCompleted: false),
+                  ],
+                  onToggleTodo: (id) => toggledTodoId = id,
+                  onDeleteTodo: (_) {},
+                  onAddSubtask: (_, __) {},
+                  onEditTodo: (_, __) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    await tester.tap(find.byType(ListTile).first);
+    await tester.pump(const Duration(milliseconds: 400));
+
+    // The card body should use the same delayed animation path as the checkbox,
+    // rather than toggling immediately on tap.
+    expect(toggledTodoId, isNull);
+  });
 }
