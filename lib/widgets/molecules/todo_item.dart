@@ -43,8 +43,13 @@ class TodoItem extends StatefulWidget {
 class _TodoItemState extends State<TodoItem> {
   final _editController = TextEditingController();
   final _editFocusNode = FocusNode();
+  final _checkboxKey = GlobalKey<AnimatedCheckboxState>();
   bool _isHovered = false;
   bool _isEditing = false;
+
+  void _animateToggle() {
+    if (!_isEditing) _checkboxKey.currentState?.animateCheck();
+  }
 
   @override
   void dispose() {
@@ -129,6 +134,7 @@ class _TodoItemState extends State<TodoItem> {
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
+        onTap: _isEditing ? null : _animateToggle,
         onSecondaryTapUp:
             (details) => _showActions(context, details.globalPosition),
         onLongPress: () => _showActions(context),
@@ -160,6 +166,7 @@ class _TodoItemState extends State<TodoItem> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 AnimatedCheckbox(
+                  key: _checkboxKey,
                   value: widget.todo.isCompleted,
                   onChanged: (_) => widget.onToggle(),
                   activeColor: themeProvider.primaryColor,
@@ -210,7 +217,7 @@ class _TodoItemState extends State<TodoItem> {
                 ],
               ],
             ),
-            onTap: _isEditing ? null : widget.onToggle,
+            onTap: _isEditing ? null : _animateToggle,
           ),
         ),
       ),
