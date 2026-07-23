@@ -1,7 +1,10 @@
+import 'dart:convert';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tsubusu/constants/storage_keys.dart';
 import 'package:tsubusu/models/todo_list_id.dart';
+import 'package:tsubusu/models/todo_list_record.dart';
 import 'package:tsubusu/services/todo_list_catalog_service.dart';
 
 void main() {
@@ -46,6 +49,42 @@ void main() {
         isNotNull,
       );
     });
+
+    test('uses the same default title for discovered lists', () async {
+      SharedPreferences.setMockInitialValues({
+        'todos_list_first': '[]',
+        'todos_list_second': '[]',
+      });
+
+      final lists = await catalog.loadLists();
+
+      expect(lists.map((list) => list.title), ['tsubusu', 'tsubusu']);
+    });
+
+    test(
+      'normalizes legacy generated titles without changing custom titles',
+      () async {
+        final first = TodoListRecord(
+          id: TodoListId.fromValue('first'),
+          title: 'tsubusu 42',
+        );
+        final second = TodoListRecord(
+          id: TodoListId.fromValue('second'),
+          title: 'My project',
+        );
+        SharedPreferences.setMockInitialValues({
+          StorageKeys.todoListCatalog: jsonEncode([
+            first.toJson(),
+            second.toJson(),
+          ]),
+        });
+
+        final lists = await catalog.loadLists();
+
+        expect(lists[0].title, 'tsubusu');
+        expect(lists[1].title, 'My project');
+      },
+    );
 
     test('deletes a list, its tasks, and its open session entry', () async {
       final created = await catalog.createList();

@@ -8,6 +8,7 @@ import '../models/todo_list_record.dart';
 
 class TodoListCatalogService {
   static const defaultTitle = 'tsubusu';
+  static final _legacyGeneratedTitlePattern = RegExp(r'^tsubusu \d+$');
 
   Future<List<TodoListRecord>> loadLists() async {
     final prefs = await SharedPreferences.getInstance();
@@ -15,9 +16,17 @@ class TodoListCatalogService {
     final encoded = prefs.getString(StorageKeys.todoListCatalog);
     if (encoded != null) {
       final decoded = jsonDecode(encoded) as List<dynamic>;
-      return decoded
-          .map((item) => TodoListRecord.fromJson(item as Map<String, dynamic>))
-          .toList();
+      final lists =
+          decoded
+              .map(
+                (item) => TodoListRecord.fromJson(item as Map<String, dynamic>),
+              )
+              .toList();
+      final normalizedLists = _normalizeLegacyGeneratedTitles(lists);
+      if (_hasChanged(lists, normalizedLists)) {
+        await _saveLists(prefs, normalizedLists);
+      }
+      return normalizedLists;
     }
 
     final migrated = _discoverPersistedLists(prefs);
@@ -95,12 +104,30 @@ class TodoListCatalogService {
           ..sort();
 
     return [
-      for (var i = 0; i < ids.length; i++)
-        TodoListRecord(
-          id: TodoListId.fromValue(ids[i]),
-          title: i == 0 ? defaultTitle : '$defaultTitle ${i + 1}',
-        ),
+      for (final id in ids)
+        TodoListRecord(id: TodoListId.fromValue(id), title: defaultTitle),
     ];
+  }
+
+  List<TodoListRecord> _normalizeLegacyGeneratedTitles(
+    List<TodoListRecord> lists,
+  ) {
+    return [
+      for (final list in lists)
+        _legacyGeneratedTitlePattern.hasMatch(list.title)
+            ? list.copyWith(title: defaultTitle)
+            : list,
+    ];
+  }
+
+  bool _hasChanged(
+    List<TodoListRecord> original,
+    List<TodoListRecord> normalized,
+  ) {
+    for (var index = 0; index < original.length; index++) {
+      if (original[index].title != normalized[index].title) return true;
+    }
+    return false;
   }
 
   Future<void> _saveLists(
