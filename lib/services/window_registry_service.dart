@@ -14,6 +14,7 @@ class WindowRegistryService {
   /// Registers a window as open
   static Future<void> registerWindow(String windowId) async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     final openWindows = prefs.getStringList(StorageKeys.openWindows) ?? [];
 
     if (!openWindows.contains(windowId)) {
@@ -25,6 +26,7 @@ class WindowRegistryService {
   /// Unregisters a window when it's closed
   static Future<void> unregisterWindow(String windowId) async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     final openWindows = prefs.getStringList(StorageKeys.openWindows) ?? [];
 
     openWindows.remove(windowId);
@@ -34,8 +36,12 @@ class WindowRegistryService {
   /// Gets the window title based on the position in the currently open windows list
   /// This ensures window titles are always sequential (tsubusu, tsubusu 2, tsubusu 3)
   /// regardless of the internal window IDs
-  static Future<String> getWindowTitle(String windowId, {String defaultName = 'tsubusu'}) async {
+  static Future<String> getWindowTitle(
+    String windowId, {
+    String defaultName = 'tsubusu',
+  }) async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     final openWindows = prefs.getStringList(StorageKeys.openWindows) ?? [];
 
     // Find the position of this window in the open windows list
@@ -46,5 +52,30 @@ class WindowRegistryService {
     }
 
     return '$defaultName $position';
+  }
+
+  static Future<List<String>> getOpenListIds() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    return prefs.getStringList(StorageKeys.openListIds) ?? [];
+  }
+
+  static Future<void> registerOpenList(String listId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final openListIds = prefs.getStringList(StorageKeys.openListIds) ?? [];
+    if (!openListIds.contains(listId)) {
+      openListIds.add(listId);
+      await prefs.setStringList(StorageKeys.openListIds, openListIds);
+    }
+  }
+
+  static Future<void> unregisterOpenList(String listId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final openListIds = prefs.getStringList(StorageKeys.openListIds) ?? [];
+    if (openListIds.remove(listId)) {
+      await prefs.setStringList(StorageKeys.openListIds, openListIds);
+    }
   }
 }

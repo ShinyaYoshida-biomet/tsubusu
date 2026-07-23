@@ -5,6 +5,7 @@ import FlutterMacOS
 class AppDelegate: FlutterAppDelegate {
   private var windowCounter = 1
   private var windowControllers: [NSWindowController] = []
+  private var mainWindowChannel: FlutterMethodChannel?
   override func applicationDidFinishLaunching(_ aNotification: Notification) {
     super.applicationDidFinishLaunching(aNotification)
     setupMenuBar()
@@ -129,52 +130,9 @@ class AppDelegate: FlutterAppDelegate {
   }
   
   @objc private func newWindow() {
-    // Increment counter for new window
-    windowCounter += 1
-    
-    // Calculate offset position for new windows (cascade effect)
-    let offsetX = 100 + (windowCounter - 1) * 30
-    let offsetY = 100 + (windowCounter - 1) * 30
-    
-    // Create new window with proper Flutter setup
-    let newWindow = NSWindow(
-      contentRect: NSRect(x: offsetX, y: offsetY, width: 300, height: 400),
-      styleMask: [.titled, .closable, .miniaturizable, .resizable],
-      backing: .buffered,
-      defer: false
-    )
-    
-    let flutterViewController = FlutterViewController()
-    newWindow.contentViewController = flutterViewController
-    
-    // Configure window with title bar visible and numbered name
-    newWindow.titlebarAppearsTransparent = false
-    newWindow.titleVisibility = .visible
-    newWindow.title = "tsubusu \(windowCounter)"
-    newWindow.minSize = NSSize(width: 250, height: 300)
-    newWindow.maxSize = NSSize(width: 600, height: 800)
-    
-    // Ensure window is at normal zoom level
-    newWindow.setIsZoomed(false)
-    
-    // Explicitly set the content size to ensure proper dimensions
-    newWindow.setContentSize(NSSize(width: 300, height: 400))
-    
-    RegisterGeneratedPlugins(registry: flutterViewController)
-    
-    // Set up method channel for this window
-    setupMethodChannel(for: flutterViewController, window: newWindow)
-    
-    // Create window controller to manage the window independently
-    let windowController = NSWindowController(window: newWindow)
-    windowControllers.append(windowController)
-    
-    // Ensure window is not minimized and is properly displayed
-    newWindow.deminiaturize(nil)
-    newWindow.orderFront(nil)
-    newWindow.makeKeyAndOrderFront(nil)
-    
-    windowController.showWindow(nil)
+    // The Dart side creates the window so it can allocate and persist a list ID
+    // before passing it to desktop_multi_window.
+    mainWindowChannel?.invokeMethod("newWindow", arguments: nil)
   }
   
   private func setupMainWindowMethodChannel() {
@@ -189,6 +147,10 @@ class AppDelegate: FlutterAppDelegate {
       name: "tsubusu/window_manager",
       binaryMessenger: flutterViewController.engine.binaryMessenger
     )
+
+    if window === NSApplication.shared.mainWindow {
+      mainWindowChannel = methodChannel
+    }
     
     methodChannel.setMethodCallHandler { [weak window] (call, result) in
       switch call.method {

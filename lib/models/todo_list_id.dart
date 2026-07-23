@@ -7,6 +7,13 @@ class TodoListId {
 
   const TodoListId._(this.value);
 
+  factory TodoListId.fromValue(String value) {
+    if (value.trim().isEmpty) {
+      throw ArgumentError.value(value, 'value', 'List ID cannot be empty');
+    }
+    return TodoListId._(value);
+  }
+
   factory TodoListId.create() {
     return TodoListId._('list_${DateTime.now().microsecondsSinceEpoch}');
   }
