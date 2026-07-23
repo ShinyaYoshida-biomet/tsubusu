@@ -2,6 +2,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
+import 'dart:convert';
+import 'models/todo_list_id.dart';
 import 'providers/theme_provider.dart';
 import 'services/window_manager.dart';
 import 'widgets/pages/todo_page.dart';
@@ -64,8 +66,21 @@ void main(List<String> args) {
   if (WindowManager.supportsWindowManagement &&
       args.firstOrNull == 'multi_window') {
     final windowId = int.parse(args[1]);
+    String? initialListId;
+    if (args.length > 2) {
+      try {
+        final windowArguments = jsonDecode(args[2]) as Map<String, dynamic>;
+        initialListId = windowArguments['listId'] as String?;
+      } catch (_) {
+        // Older windows may not have startup arguments.
+      }
+    }
     runApp(
-      TsubusuWindow(windowController: WindowController.fromWindowId(windowId)),
+      TsubusuWindow(
+        windowController: WindowController.fromWindowId(windowId),
+        initialListId:
+            initialListId == null ? null : TodoListId.fromValue(initialListId),
+      ),
     );
   } else {
     runApp(const TsubusuWindow());
@@ -74,8 +89,9 @@ void main(List<String> args) {
 
 class TsubusuWindow extends StatelessWidget {
   final WindowController? windowController;
+  final TodoListId? initialListId;
 
-  const TsubusuWindow({super.key, this.windowController});
+  const TsubusuWindow({super.key, this.windowController, this.initialListId});
 
   @override
   Widget build(BuildContext context) {
@@ -86,7 +102,10 @@ class TsubusuWindow extends StatelessWidget {
           return MaterialApp(
             title: 'Tsubusu',
             theme: themeProvider.themeData,
-            home: const TodoPage(),
+            home: TodoPage(
+              windowController: windowController,
+              initialListId: initialListId,
+            ),
             debugShowCheckedModeBanner: false,
           );
         },

@@ -159,5 +159,17 @@ void main() {
         expect(title, 'tsubusu'); // Returns default when not found (position = 0 + 1 = 1)
       });
     });
+
+    test('registers and unregisters persistent open list IDs', () async {
+      await WindowRegistryService.registerOpenList('list_a');
+      await WindowRegistryService.registerOpenList('list_b');
+      await WindowRegistryService.registerOpenList('list_a');
+
+      expect(await WindowRegistryService.getOpenListIds(), ['list_a', 'list_b']);
+
+      await WindowRegistryService.unregisterOpenList('list_a');
+
+      expect(await WindowRegistryService.getOpenListIds(), ['list_b']);
+    });
   });
 }

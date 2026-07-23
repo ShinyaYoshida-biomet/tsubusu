@@ -8,6 +8,7 @@ class AppHeader extends StatefulWidget {
   final FocusNode focusNode;
   final VoidCallback onAddTodo;
   final VoidCallback onShowSettings;
+  final VoidCallback onShowLists;
   final String windowTitle;
   final ValueChanged<String> onTitleChanged;
 
@@ -17,6 +18,7 @@ class AppHeader extends StatefulWidget {
     required this.focusNode,
     required this.onAddTodo,
     required this.onShowSettings,
+    required this.onShowLists,
     required this.windowTitle,
     required this.onTitleChanged,
   });
@@ -38,7 +40,8 @@ class _AppHeaderState extends State<AppHeader> {
   @override
   void didUpdateWidget(AppHeader oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.windowTitle != widget.windowTitle && _titleController.text != widget.windowTitle) {
+    if (oldWidget.windowTitle != widget.windowTitle &&
+        _titleController.text != widget.windowTitle) {
       _titleController.removeListener(_onTextChanged);
       _titleController.text = widget.windowTitle;
       _titleController.addListener(_onTextChanged);
@@ -87,7 +90,10 @@ class _AppHeaderState extends State<AppHeader> {
                     ),
                     decoration: const InputDecoration(
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 4,
+                        vertical: 4,
+                      ),
                       isDense: true,
                       hintText: 'Enter title...',
                       hintStyle: TextStyle(
@@ -105,12 +111,23 @@ class _AppHeaderState extends State<AppHeader> {
                 ),
               ),
               const SizedBox(width: 10),
+              IconButtonAtom(
+                icon: Icons.view_list,
+                onPressed: widget.onShowLists,
+                iconColor: Colors.white,
+                backgroundColor: Colors.white.withValues(
+                  alpha: DesignConstants.opacityLight,
+                ),
+              ),
+              const SizedBox(width: 6),
               // Settings button
               IconButtonAtom(
                 icon: Icons.settings,
                 onPressed: widget.onShowSettings,
                 iconColor: Colors.white,
-                backgroundColor: Colors.white.withValues(alpha: DesignConstants.opacityLight),
+                backgroundColor: Colors.white.withValues(
+                  alpha: DesignConstants.opacityLight,
+                ),
               ),
             ],
           ),
