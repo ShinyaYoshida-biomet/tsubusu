@@ -14,6 +14,24 @@ migrate_working_dir/
 .config
 ios/fastlane/report.xml
 
+# Apple signing and distribution secrets/artifacts
+**/*.p8
+**/*.mobileprovision
+**/*.cer
+**/*.p12
+**/api_key*.json
+*.ipa
+*.xcarchive/
+*.dSYM.zip
+
+# Local Ruby dependencies
+.bundle/
+vendor/bundle/
+
+# Locally generated macOS distribution artifacts
+*.dmg
+dmg_contents/
+
 # IntelliJ related
 *.iml
 *.ipr

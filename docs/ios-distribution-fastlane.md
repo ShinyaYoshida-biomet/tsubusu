@@ -1,41 +1,61 @@
 # iOS Distribution with Flutter and fastlane
 
-このドキュメントでは、Tsubusu を Flutter から iOS アプリとしてビルドし、fastlane で TestFlight へアップロードするまでの手順をまとめる。
+This document describes how to build Tsubusu as an iOS app with Flutter and upload it to TestFlight with fastlane.
 
-## 前提
+## Recommended local commands
 
-- Apple Developer Program に登録済み
-- App Store Connect にアプリ `Tsubusu` を作成済み
-- Bundle ID は `com.shinyayoshida.tsubusu`
-- iOS のビルドは Flutter、署名と TestFlight へのアップロードは fastlane を使う
-- Xcode は GUI 操作のためではなく、`xcodebuild` を利用する Flutter / fastlane の実行環境としてインストール済みであること
+Install the locked Ruby dependencies and run the complete build-and-upload flow with one command:
 
-## 手作業と CLI で行う作業
+```bash
+make ios-beta
+```
 
-| 作業                                                        | 方法                                        |
-| ----------------------------------------------------------- | ------------------------------------------- |
-| App Store Connect API Key の作成と `.p8` の初回ダウンロード | App Store Connect の画面                    |
-| Bundle ID、証明書、Provisioning Profile の作成              | fastlane CLI                                |
-| iOS プロジェクトの Bundle ID 更新                           | fastlane CLI                                |
-| IPA のビルド                                                | Flutter CLI                                 |
-| TestFlight へのアップロード                                 | fastlane CLI                                |
-| TestFlight の説明、輸出コンプライアンス、審査提出           | App Store Connect（初回は画面操作が現実的） |
+By default, `ios-beta` builds an IPA with Flutter and uploads it to TestFlight. To upload an IPA that has already been built, reuse it without rebuilding:
 
-## 1. App Store Connect API Key を作成する
+```bash
+make ios-beta IPA_PATH=build/ios/ipa/tsubusu.ipa
+```
 
-App Store Connect の以下の場所で、Team API Key を作成する。
+The App Store Connect API key is loaded from `ASC_API_KEY_PATH` when set, or from `~/.config/tsubusu/api_key.json` by default.
+
+## Prerequisites
+
+- You are enrolled in the Apple Developer Program.
+- The `Tsubusu` app has been created in App Store Connect.
+- The Bundle ID is `com.shinyayoshida.tsubusu`.
+- Flutter is used for iOS builds, and fastlane is used for signing and TestFlight uploads.
+- Xcode is installed because Flutter and fastlane use `xcodebuild`; the Xcode GUI is not required for the normal workflow.
+
+This repository must not contain API keys, `.p8` files, certificates, provisioning profiles, IPA files, or other distribution artifacts. The `.gitignore` file excludes these items. Store the API key JSON and `.p8` file outside the repository or in a CI secret store.
+
+`Team ID` and Bundle ID are public identifiers used by Apple to identify an app and developer team; they are not private keys. They are still associated with an Apple Developer account, so avoid exposing them unnecessarily in logs or screenshots. The contents of the `.p8` file, the private-key portion of the API key JSON, certificates, and provisioning profiles must be treated as secrets.
+
+## Manual and CLI tasks
+
+| Task | Method |
+| --- | --- |
+| Create the App Store Connect API key and download the `.p8` file for the first time | App Store Connect UI |
+| Create the Bundle ID, certificate, and provisioning profile | fastlane CLI |
+| Update the Bundle ID in the iOS project | fastlane CLI |
+| Build the IPA | Flutter CLI |
+| Upload to TestFlight | fastlane CLI |
+| Configure TestFlight information, export compliance, and submit for review | App Store Connect UI; the UI is most practical for the first setup |
+
+## 1. Create an App Store Connect API key
+
+Create a Team API Key in App Store Connect:
 
 `Users and Access` → `Integrations` → `App Store Connect API` → `Team Keys`
 
-作成時に次の情報を控える。
+Record the following values:
 
 - Issuer ID
 - Key ID
-- ダウンロードした `AuthKey_<KEY_ID>.p8`
+- The downloaded `AuthKey_<KEY_ID>.p8` file
 
-`.p8` は作成直後に一度しかダウンロードできない。紛失した場合は Apple 側で revoke して新しいキーを作成する。秘密鍵本体はリポジトリに commit しない。
+Apple allows the `.p8` file to be downloaded only once after creation. If it is lost, revoke the key in Apple’s systems and create a new one. Never commit the private key to the source repository.
 
-ローカルでは、例えば次のように保存する。
+Store the file locally, for example:
 
 ```bash
 mkdir -p ~/.config/tsubusu
@@ -43,7 +63,7 @@ mv ~/Downloads/AuthKey_<KEY_ID>.p8 ~/.config/tsubusu/
 chmod 600 ~/.config/tsubusu/AuthKey_<KEY_ID>.p8
 ```
 
-fastlane 用の API Key 設定ファイルもリポジトリ外に作成する。
+Create the fastlane API key configuration outside the repository as well.
 
 `~/.config/tsubusu/api_key.json`:
 
@@ -59,17 +79,17 @@ fastlane 用の API Key 設定ファイルもリポジトリ外に作成する�
 chmod 600 ~/.config/tsubusu/api_key.json
 ```
 
-## 2. fastlane をプロジェクトに追加する
+## 2. Add fastlane to the project
 
-Ruby の依存関係を固定するため、`ios/Gemfile` を作成する。
+Create `ios/Gemfile` to pin the Ruby dependency:
 
 ```ruby
 source "https://rubygems.org"
 
-gem "fastlane"
+gem "fastlane", "= 2.231.1"
 ```
 
-その後、`ios` ディレクトリで fastlane をインストールする。
+Install fastlane from the `ios` directory:
 
 ```bash
 cd ios
@@ -77,11 +97,11 @@ bundle install
 bundle exec fastlane --version
 ```
 
-以降の fastlane コマンドは、プロジェクトで固定したバージョンを使うため `bundle exec fastlane` で実行する。
+The Makefile wraps these commands for the normal local workflow. Run `make ios-fastlane-install` directly when only the Ruby dependencies need to be installed.
 
-## 3. Bundle ID を準備する
+## 3. Prepare the Bundle ID
 
-App Store Connect のアプリと、Apple Developer Portal の Bundle ID は別の管理対象である。Bundle ID がまだ存在しない場合は、fastlane で作成する。
+The App Store Connect app and the Bundle ID in the Apple Developer Portal are separate resources. If the Bundle ID does not exist yet, create it with fastlane:
 
 ```bash
 cd ios
@@ -94,9 +114,9 @@ bundle exec fastlane produce create \
   --skip_itc
 ```
 
-`produce` は Apple ID によるログインを求める場合がある。すでに同じ Bundle ID が存在する場合は、この手順を繰り返さず、その Bundle ID を使う。
+`produce` may request Apple ID authentication. If the Bundle ID already exists, do not repeat this step; use the existing Bundle ID.
 
-次に、iOS プロジェクトの Bundle ID を更新する。
+Update the Bundle ID in the iOS project:
 
 ```bash
 cd ios
@@ -106,31 +126,31 @@ bundle exec fastlane run update_app_identifier \
   app_identifier:com.shinyayoshida.tsubusu
 ```
 
-変更後は、Xcode プロジェクト内の Debug / Release / Profile など、すべての iOS ターゲット設定で Bundle ID が `com.shinyayoshida.tsubusu` になっていることを確認する。
+After the update, verify that every iOS target configuration, including Debug, Release, and Profile, uses `com.shinyayoshida.tsubusu`.
 
-## 4. 署名情報を fastlane match で管理する
+## 4. Manage signing with fastlane match
 
-`match` は Apple の署名証明書と Provisioning Profile を作成し、暗号化して専用の private repository に保存する仕組みである。
+`match` creates Apple signing certificates and provisioning profiles, encrypts them, and stores them in a dedicated private repository.
 
-アプリのソースコード用リポジトリとは別に、private repository を一つ用意する。例:
+Create a private repository separate from the application source repository. For example:
 
 ```bash
 gh repo create ShinyaYoshida-biomet/tsubusu-ios-certificates --private
 ```
 
-このリポジトリには署名情報が入るため、必ず private にする。作成後、`ios` ディレクトリで初期化する。
+This repository contains signing material and must remain private. Initialize it from the `ios` directory:
 
 ```bash
 cd ios
 bundle exec fastlane match init
 ```
 
-質問には次のように答える。
+Use the following answers when prompted:
 
 - Storage mode: `git`
-- Git repository: 作成した private repository の URL
+- Git repository: the URL of the private repository you created
 
-初回の証明書・Provisioning Profile 作成と取得:
+Create or retrieve the App Store provisioning profile and certificate:
 
 ```bash
 cd ios
@@ -138,116 +158,97 @@ bundle exec fastlane match appstore \
   --api_key_path ~/.config/tsubusu/api_key.json
 ```
 
-この処理では、Apple Distribution Certificate と App Store 用 Provisioning Profile が作成または取得され、Mac の Keychain にインストールされる。暗号化された署名情報は match の private repository に保存される。
+This creates or retrieves an Apple Distribution Certificate and an App Store provisioning profile, then installs them in the Mac Keychain. The encrypted signing material is stored in the private `match` repository.
 
-パスフレーズを求められたら、`MATCH_PASSWORD` に設定する値を作成する。パスフレーズは証明書リポジトリの復号に必要なので、パスワードマネージャーなどで保管する。
+If prompted for a passphrase, create a value for `MATCH_PASSWORD`. Store it in a password manager because it is required to decrypt the certificate repository.
 
-署名証明書が入ったことを確認する。
+Verify that the signing certificate is available:
 
 ```bash
 security find-identity -v -p codesigning
 ```
 
-`Apple Distribution: ...` が表示されれば、Distribution 用の署名証明書を利用できる状態である。古い `.mobileprovision` が Mac に残っていても、別アプリ用や期限切れの可能性があるため、その存在だけで Tsubusu の署名が準備済みとは判断しない。
+If an `Apple Distribution: ...` identity is listed, a Distribution certificate is available. Existing `.mobileprovision` files may belong to another app or may be expired, so their presence alone does not confirm that Tsubusu signing is ready.
 
-## 5. ローカルでテストして IPA を作る
+## 5. Test locally and build the IPA
 
-まず静的解析とテストを実行する。
+Run static analysis and tests first:
 
 ```bash
 fvm flutter analyze
 fvm flutter test
 ```
 
-IPA を作成する。
+Build the IPA using `ios/ExportOptions.plist` and the local signing configuration:
 
 ```bash
-fvm flutter build ipa \
-  --release \
-  --build-name 1.0.0 \
-  --build-number 1
+make ios-ipa
 ```
 
-通常、IPA は次の場所に出力される。
+You can optionally specify the version and build number with environment variables:
+
+```bash
+make ios-ipa BUILD_NAME=1.0.6 BUILD_NUMBER=3
+```
+
+The IPA is normally written to:
 
 ```text
 build/ios/ipa/tsubusu.ipa
 ```
 
-build number は App Store Connect に同じものを再アップロードできない。同じバージョンを再ビルドする場合は、`--build-number` を増やす。
+App Store Connect does not accept the same build number twice. Increase the build number when rebuilding the same app version.
 
-## 6. fastlane で TestFlight にアップロードする
-
-```bash
-cd ios
-bundle exec fastlane pilot upload \
-  --ipa ../build/ios/ipa/tsubusu.ipa \
-  --api_key_path ~/.config/tsubusu/api_key.json
-```
-
-アップロード後は App Store Connect 側で処理が完了するまで待つ。初回は次の項目を確認する。
-
-- Export Compliance の回答
-- TestFlight の Beta App Information
-- Internal Tester / External Tester の追加
-- 必要に応じた審査提出
-
-IPA のアップロード自体は CLI で完結できるが、初回のアプリ情報や審査関連の入力は App Store Connect で行う。
-
-## 7. 今後の定型 lane
-
-運用が固まったら `ios/fastlane/Fastfile` に lane を追加すると、ビルドと TestFlight upload を一つのコマンドにまとめられる。
-
-```ruby
-default_platform(:ios)
-
-platform :ios do
-  lane :beta do
-    match(
-      type: "appstore",
-      api_key_path: ENV.fetch("FASTLANE_API_KEY_PATH")
-    )
-
-    sh("cd .. && fvm flutter build ipa --release")
-
-    upload_to_testflight(
-      ipa: "../build/ios/ipa/tsubusu.ipa",
-      api_key_path: ENV.fetch("FASTLANE_API_KEY_PATH")
-    )
-  end
-end
-```
+## 6. Upload to TestFlight with fastlane
 
 ```bash
-cd ios
-FASTLANE_API_KEY_PATH="$HOME/.config/tsubusu/api_key.json" \
-  bundle exec fastlane beta
+make ios-beta
 ```
 
-## 8. GitHub Actions に移す場合
+If an IPA already exists, pass it through `IPA_PATH` so fastlane uploads it directly:
 
-CI では次の情報を GitHub Secrets に登録する。
+```bash
+make ios-beta IPA_PATH=../build/ios/ipa/tsubusu.ipa
+```
 
-- App Store Connect API Key の内容、または安全に生成した API Key JSON
+Wait for App Store Connect to finish processing the upload. For the first release, review the following items:
+
+- Export Compliance answers
+- TestFlight Beta App Information
+- Internal and external testers
+- Review submission, if required
+
+The IPA upload can be completed from the CLI, but the initial app information and review-related fields are most practical to configure in App Store Connect.
+
+## 7. App Store upload lane
+
+Upload an existing IPA to App Store Connect without submitting it for review:
+
+```bash
+make ios-release IPA_PATH=build/ios/ipa/tsubusu.ipa
+```
+
+## 8. Moving the workflow to GitHub Actions
+
+Store the following values in GitHub Secrets for CI:
+
+- App Store Connect API key material, or a securely generated API key JSON file
 - `MATCH_PASSWORD`
-- match 用 private repository を clone するための認証情報
+- Credentials that allow CI to clone the private `match` repository
 
-`.p8`、API Key JSON、`MATCH_PASSWORD`、証明書、Provisioning Profile はソースコードリポジトリに commit しない。ローカルと CI で同じ署名情報を使う場合も、秘密情報は GitHub Secrets や CI の secret store から注入する。
+Never commit `.p8` files, API key JSON files, `MATCH_PASSWORD`, certificates, or provisioning profiles to the source repository. Inject secrets from GitHub Secrets or another CI secret store for both local and CI workflows.
 
-## リリース前に確認すること
+## Release checklist
 
-- Bundle ID が `com.shinyayoshida.tsubusu` で統一されている
-- App Store Connect のアプリと Developer Portal の Bundle ID が一致している
-- `security find-identity -v -p codesigning` に有効な Apple Distribution 証明書が表示される
-- build number が過去にアップロードした値より大きい
-- アプリ再起動後もユーザーの Todo データが同じリストに復元される
-- App Store Connect の Export Compliance、TestFlight 情報、スクリーンショット、説明文を確認している
+- The Bundle ID is consistently `com.shinyayoshida.tsubusu`.
+- The App Store Connect app and Developer Portal Bundle ID match.
+- `security find-identity -v -p codesigning` lists a valid Apple Distribution certificate.
+- The build number is greater than every build previously uploaded.
+- User Todo data is restored to the same list after restarting the app.
+- App Store Connect export compliance, TestFlight information, screenshots, and descriptions have been reviewed.
 
-## 参考資料
+## References
 
-- [Flutter: Build and release an iOS app](https://docs.flutter.dev/deployment/ios)
-- [Flutter: Continuous delivery with fastlane](https://docs.flutter.dev/deployment/cd)
-- [fastlane: App Store Connect API](https://docs.fastlane.tools/app-store-connect-api/)
-- [fastlane: produce](https://docs.fastlane.tools/actions/produce/)
-- [fastlane: match](https://docs.fastlane.tools/actions/match/)
-- [fastlane: upload_to_testflight / pilot](https://docs.fastlane.tools/actions/upload_to_testflight/)
+- [fastlane documentation](https://docs.fastlane.tools/)
+- [Flutter iOS deployment documentation](https://docs.flutter.dev/deployment/ios)
+- [App Store Connect Help](https://developer.apple.com/help/app-store-connect/)

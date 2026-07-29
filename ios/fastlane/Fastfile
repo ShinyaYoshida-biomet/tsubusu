@@ -1,47 +1,85 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
+require "shellwords"
 
 default_platform(:ios)
 
 platform :ios do
-  desc "Build and upload Tsubusu to TestFlight"
-  lane :beta do
-    api_key_path = File.expand_path("~/.config/tsubusu/api_key.json")
-
-    build_app(
-      workspace: "Runner.xcworkspace",
-      scheme: "Runner",
-      configuration: "Release",
-      clean: true,
-      xcargs: "FLUTTER_BUILD_NAME=1.0.6 FLUTTER_BUILD_NUMBER=2",
-      export_method: "app-store",
-      export_options: {
-        signingStyle: "manual",
-        signingCertificate: "Apple Distribution",
-        teamID: "PQXW23FNYJ",
-        provisioningProfiles: {
-          "com.shinyayoshida.tsubusu" => "com.shinyayoshida.tsubusu AppStore"
-        }
-      },
-      output_directory: "../build/ios/ipa",
-      output_name: "tsubusu.ipa"
+  private_lane :asc_api_key_path do
+    path = ENV.fetch(
+      "ASC_API_KEY_PATH",
+      File.expand_path("~/.config/tsubusu/api_key.json"),
     )
+    UI.user_error!("App Store Connect API key file not found: #{path}") unless File.file?(path)
+    path
+  end
 
+  private_lane :build_ipa do
+    repo_root = File.expand_path("../..", __dir__)
+    export_options = File.join(repo_root, "ios/ExportOptions.plist")
+    build_args = [
+      "fvm flutter build ipa --release",
+      "--export-options-plist=#{Shellwords.escape(export_options)}",
+    ]
+    if ENV["BUILD_NAME"]
+      build_args << "--build-name=#{Shellwords.escape(ENV.fetch("BUILD_NAME"))}"
+    end
+    if ENV["BUILD_NUMBER"]
+      build_args << "--build-number=#{Shellwords.escape(ENV.fetch("BUILD_NUMBER"))}"
+    end
+
+    bundle_path = ENV["BUNDLE_PATH"]
+    bundle_bin_path = bundle_path && File.expand_path(bundle_path)
+    clean_path = ENV.fetch("PATH", "").split(File::PATH_SEPARATOR).reject do |entry|
+      bundle_bin_path && entry.start_with?(bundle_bin_path)
+    end.join(File::PATH_SEPARATOR)
+    flutter_command = [
+      "env -u BUNDLE_GEMFILE -u BUNDLE_BIN_PATH -u BUNDLE_PATH -u RUBYOPT -u GEM_HOME -u GEM_PATH",
+      "PATH=#{Shellwords.escape(clean_path)}",
+      build_args.join(" "),
+    ].join(" ")
+    Dir.chdir(repo_root) { sh(flutter_command) }
+
+    ipa_paths = Dir[File.expand_path("../../build/ios/ipa/*.ipa", __dir__)]
+    UI.user_error!("Flutter did not produce an IPA in build/ios/ipa") if ipa_paths.empty?
+    ipa_paths.max_by { |path| File.mtime(path) }
+  end
+
+  private_lane :existing_ipa_path do |options|
+    ipa_path = options[:ipa] || ENV["IPA_PATH"]
+    return nil if ipa_path.to_s.empty?
+
+    repo_root = File.expand_path("../..", __dir__)
+    resolved_path = File.expand_path(ipa_path, repo_root)
+    UI.user_error!("IPA not found: #{resolved_path}") unless File.file?(resolved_path)
+    resolved_path
+  end
+
+  desc "Build an iOS IPA with Flutter"
+  lane :build do
+    build_ipa
+  end
+
+  desc "Build an IPA with Flutter, or upload IPA_PATH, to TestFlight"
+  lane :beta do |options|
+    ipa_path = existing_ipa_path(options) || build_ipa
     upload_to_testflight(
-      ipa: lane_context[SharedValues::IPA_OUTPUT_PATH],
-      api_key_path: api_key_path
+      ipa: ipa_path,
+      api_key_path: asc_api_key_path,
+      skip_waiting_for_build_processing: true,
+    )
+  end
+
+  desc "Upload a selected IPA to App Store Connect without submitting it"
+  lane :release do |options|
+    ipa_path = existing_ipa_path(options)
+    UI.user_error!("Provide an IPA with IPA_PATH=/path/to/app.ipa") if ipa_path.nil?
+
+    deliver(
+      ipa: ipa_path,
+      api_key_path: asc_api_key_path,
+      skip_metadata: true,
+      skip_screenshots: true,
+      submit_for_review: false,
+      force: true,
     )
   end
 end
