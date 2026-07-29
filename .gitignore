@@ -13,6 +13,7 @@
 migrate_working_dir/
 .config
 ios/fastlane/report.xml
+docs/ios-distribution-fastlane.md
 
 # Apple signing and distribution secrets/artifacts
 **/*.p8
