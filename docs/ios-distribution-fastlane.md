@@ -21,8 +21,8 @@ The App Store Connect API key is loaded from `ASC_API_KEY_PATH` when set, or fro
 ## Prerequisites
 
 - You are enrolled in the Apple Developer Program.
-- The `Tsubusu` app has been created in App Store Connect.
-- The Bundle ID is `com.shinyayoshida.tsubusu`.
+- Your iOS app has been created in App Store Connect.
+- The Bundle ID is configured locally as `YOUR_IOS_BUNDLE_ID`.
 - Flutter is used for iOS builds, and fastlane is used for signing and TestFlight uploads.
 - Xcode is installed because Flutter and fastlane use `xcodebuild`; the Xcode GUI is not required for the normal workflow.
 
@@ -71,7 +71,7 @@ Create the fastlane API key configuration outside the repository as well.
 {
   "key_id": "YOUR_KEY_ID",
   "issuer_id": "YOUR_ISSUER_ID",
-  "key_filepath": "/Users/YOUR_USERNAME/.config/tsubusu/AuthKey_YOUR_KEY_ID.p8"
+  "key_filepath": "AuthKey_YOUR_KEY_ID.p8"
 }
 ```
 
@@ -106,10 +106,10 @@ The App Store Connect app and the Bundle ID in the Apple Developer Portal are se
 ```bash
 cd ios
 bundle exec fastlane produce create \
-  --app_identifier com.shinyayoshida.tsubusu \
+  --app_identifier YOUR_IOS_BUNDLE_ID \
   --app_name Tsubusu \
   --app_version 1.0 \
-  --sku com.shinyayoshida.tsubusu \
+  --sku YOUR_IOS_BUNDLE_ID \
   --language English \
   --skip_itc
 ```
@@ -123,10 +123,10 @@ cd ios
 bundle exec fastlane run update_app_identifier \
   xcodeproj:Runner.xcodeproj \
   plist_path:Runner/Info.plist \
-  app_identifier:com.shinyayoshida.tsubusu
+  app_identifier:YOUR_IOS_BUNDLE_ID
 ```
 
-After the update, verify that every iOS target configuration, including Debug, Release, and Profile, uses `com.shinyayoshida.tsubusu`.
+After the update, verify that every iOS target configuration, including Debug, Release, and Profile, uses `YOUR_IOS_BUNDLE_ID`.
 
 ## 4. Manage signing with fastlane match
 
@@ -135,7 +135,7 @@ After the update, verify that every iOS target configuration, including Debug, R
 Create a private repository separate from the application source repository. For example:
 
 ```bash
-gh repo create ShinyaYoshida-biomet/tsubusu-ios-certificates --private
+gh repo create your-org/tsubusu-ios-certificates --private
 ```
 
 This repository contains signing material and must remain private. Initialize it from the `ios` directory:
@@ -240,7 +240,7 @@ Never commit `.p8` files, API key JSON files, `MATCH_PASSWORD`, certificates, or
 
 ## Release checklist
 
-- The Bundle ID is consistently `com.shinyayoshida.tsubusu`.
+- The Bundle ID is consistently `YOUR_IOS_BUNDLE_ID`.
 - The App Store Connect app and Developer Portal Bundle ID match.
 - `security find-identity -v -p codesigning` lists a valid Apple Distribution certificate.
 - The build number is greater than every build previously uploaded.
