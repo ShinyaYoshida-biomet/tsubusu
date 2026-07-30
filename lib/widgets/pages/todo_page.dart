@@ -161,10 +161,10 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   Future<void> _showLists() async {
-    final selectedListId = await showDialog<TodoListId>(
+    final selectedListId = await showAdaptiveDialog<TodoListId>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog(
+        return AlertDialog.adaptive(
           title: const Text('Todo lists'),
           content: SizedBox(
             width: 320,
@@ -200,10 +200,10 @@ class _TodoPageState extends State<TodoPage> {
                             );
                             return;
                           }
-                          final confirmed = await showDialog<bool>(
+                          final confirmed = await showAdaptiveDialog<bool>(
                             context: dialogContext,
                             builder:
-                                (context) => AlertDialog(
+                                (context) => AlertDialog.adaptive(
                                   title: const Text('Delete list?'),
                                   content: Text(
                                     'Delete "${list.title}" and all of its tasks?',
@@ -318,7 +318,10 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   void _showSettings() {
-    showDialog(context: context, builder: (context) => const SettingsDialog());
+    showAdaptiveDialog(
+      context: context,
+      builder: (context) => const SettingsDialog(),
+    );
   }
 
   @override

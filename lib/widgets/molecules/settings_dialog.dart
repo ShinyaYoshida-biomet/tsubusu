@@ -5,9 +5,7 @@ import '../../providers/theme_provider.dart';
 import '../atoms/custom_text.dart';
 
 class SettingsDialog extends StatefulWidget {
-  const SettingsDialog({
-    super.key,
-  });
+  const SettingsDialog({super.key});
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();
@@ -35,7 +33,7 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
+    return AlertDialog.adaptive(
       title: const CustomText('Settings'),
       content: SingleChildScrollView(
         child: Column(
@@ -43,15 +41,20 @@ class _SettingsDialogState extends State<SettingsDialog> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Theme Selection Section
-            const CustomText('Theme:', style: TextStyle(fontWeight: FontWeight.bold)),
+            const CustomText(
+              'Theme:',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
             const SizedBox(height: 8),
-            ...AppTheme.predefinedThemes.map((theme) => RadioListTile<ThemeType>(
-                  title: CustomText(theme.displayName),
-                  value: theme.type,
-                  groupValue: _selectedThemeType,
-                  onChanged: _handleThemeChange,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                )),
+            ...AppTheme.predefinedThemes.map(
+              (theme) => RadioListTile<ThemeType>(
+                title: CustomText(theme.displayName),
+                value: theme.type,
+                groupValue: _selectedThemeType,
+                onChanged: _handleThemeChange,
+                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+              ),
+            ),
           ],
         ),
       ),

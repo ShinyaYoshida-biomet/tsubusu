@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -81,6 +82,52 @@ class _TodoItemState extends State<TodoItem> {
   }
 
   void _showActions(BuildContext context, [Offset? globalPosition]) {
+    final isApplePlatform = switch (Theme.of(context).platform) {
+      TargetPlatform.iOS || TargetPlatform.macOS => true,
+      _ => false,
+    };
+
+    if (isApplePlatform) {
+      showCupertinoModalPopup<String>(
+        context: context,
+        builder:
+            (context) => CupertinoActionSheet(
+              actions: [
+                if (widget.hasChildren && widget.onToggleExpanded != null)
+                  CupertinoActionSheetAction(
+                    onPressed: () => Navigator.pop(context, 'collapse'),
+                    child: Text(widget.isExpanded ? '折りたたむ' : '展開する'),
+                  ),
+                if (widget.onAddSubtask != null)
+                  CupertinoActionSheetAction(
+                    onPressed: () => Navigator.pop(context, 'add'),
+                    child: const Text('サブタスクを追加'),
+                  ),
+                if (widget.onMove != null)
+                  CupertinoActionSheetAction(
+                    onPressed: () => Navigator.pop(context, 'move'),
+                    child: const Text('別のタスクのサブタスクにする'),
+                  ),
+                if (widget.onEdit != null)
+                  CupertinoActionSheetAction(
+                    onPressed: () => Navigator.pop(context, 'edit'),
+                    child: const Text('名前を変更'),
+                  ),
+                CupertinoActionSheetAction(
+                  isDestructiveAction: true,
+                  onPressed: () => Navigator.pop(context, 'delete'),
+                  child: const Text('削除'),
+                ),
+              ],
+              cancelButton: CupertinoActionSheetAction(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('キャンセル'),
+              ),
+            ),
+      ).then(_handleAction);
+      return;
+    }
+
     final box = context.findRenderObject() as RenderBox;
     final position = globalPosition ?? box.localToGlobal(Offset.zero);
     showMenu<String>(
@@ -105,21 +152,23 @@ class _TodoItemState extends State<TodoItem> {
           const PopupMenuItem(value: 'edit', child: Text('名前を変更')),
         const PopupMenuItem(value: 'delete', child: Text('削除')),
       ],
-    ).then((value) {
-      if (!mounted) return;
-      switch (value) {
-        case 'collapse':
-          widget.onToggleExpanded?.call();
-        case 'add':
-          widget.onAddSubtask?.call();
-        case 'move':
-          widget.onMove?.call();
-        case 'edit':
-          _startEditing();
-        case 'delete':
-          widget.onDelete();
-      }
-    });
+    ).then(_handleAction);
+  }
+
+  void _handleAction(String? value) {
+    if (!mounted) return;
+    switch (value) {
+      case 'collapse':
+        widget.onToggleExpanded?.call();
+      case 'add':
+        widget.onAddSubtask?.call();
+      case 'move':
+        widget.onMove?.call();
+      case 'edit':
+        _startEditing();
+      case 'delete':
+        widget.onDelete();
+    }
   }
 
   @override
