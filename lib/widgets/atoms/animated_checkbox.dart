@@ -153,6 +153,7 @@ class AnimatedCheckboxState extends State<AnimatedCheckbox>
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.opaque,
       onTap: _animateCheck,
       child: AnimatedBuilder(
         animation: Listenable.merge([_squeezeController, _popController]),
