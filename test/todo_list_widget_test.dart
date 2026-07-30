@@ -47,9 +47,7 @@ void main() {
     expect(find.text('Completed (1)'), findsOneWidget);
   });
 
-  testWidgets('animates and toggles when the card body is tapped', (
-    tester,
-  ) async {
+  testWidgets('does not toggle when the card body is tapped', (tester) async {
     String? toggledTodoId;
 
     await tester.pumpWidget(
@@ -78,8 +76,6 @@ void main() {
     await tester.tap(find.byType(ListTile).first);
     await tester.pump(const Duration(milliseconds: 400));
 
-    // The card body should use the same delayed animation path as the checkbox,
-    // rather than toggling immediately on tap.
     expect(toggledTodoId, isNull);
   });
 }

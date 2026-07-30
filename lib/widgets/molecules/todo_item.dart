@@ -47,13 +47,8 @@ class TodoItem extends StatefulWidget {
 class _TodoItemState extends State<TodoItem> {
   final _editController = TextEditingController();
   final _editFocusNode = FocusNode();
-  final _checkboxKey = GlobalKey<AnimatedCheckboxState>();
   bool _isHovered = false;
   bool _isEditing = false;
-
-  void _animateToggle() {
-    if (!_isEditing) _checkboxKey.currentState?.animateCheck();
-  }
 
   @override
   void dispose() {
@@ -141,116 +136,114 @@ class _TodoItemState extends State<TodoItem> {
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: GestureDetector(
-        onTap: _isEditing ? null : _animateToggle,
-        onSecondaryTapUp:
-            (details) => _showActions(context, details.globalPosition),
-        onLongPress: () => _showActions(context),
-        onDoubleTap: _startEditing,
-        child: Container(
-          margin: EdgeInsets.only(bottom: DesignConstants.spacingSmall),
-          decoration: BoxDecoration(
-            color: themeProvider.cardColor,
-            borderRadius: BorderRadius.circular(
-              DesignConstants.borderRadiusStandard,
+      child: Container(
+        margin: EdgeInsets.only(bottom: DesignConstants.spacingSmall),
+        decoration: BoxDecoration(
+          color: themeProvider.cardColor,
+          borderRadius: BorderRadius.circular(
+            DesignConstants.borderRadiusStandard,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: themeProvider.shadowColor,
+              blurRadius: 2,
+              offset: const Offset(0, 1),
             ),
-            boxShadow: [
-              BoxShadow(
-                color: themeProvider.shadowColor,
-                blurRadius: 2,
-                offset: const Offset(0, 1),
+          ],
+        ),
+        child: ListTile(
+          contentPadding: EdgeInsets.only(
+            left:
+                widget.isSubtask
+                    ? DesignConstants.spacingMedium * 2
+                    : DesignConstants.spacingSmall,
+            right: DesignConstants.spacingSmall,
+          ),
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AnimatedCheckbox(
+                value: widget.todo.isCompleted,
+                onChanged: (_) => widget.onToggle(),
+                activeColor: themeProvider.primaryColor,
+                isStatic: widget.isCompleted,
               ),
             ],
           ),
-          child: ListTile(
-            contentPadding: EdgeInsets.only(
-              left:
-                  widget.isSubtask
-                      ? DesignConstants.spacingMedium * 2
-                      : DesignConstants.spacingSmall,
-              right: DesignConstants.spacingSmall,
-            ),
-            leading: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                AnimatedCheckbox(
-                  key: _checkboxKey,
-                  value: widget.todo.isCompleted,
-                  onChanged: (_) => widget.onToggle(),
-                  activeColor: themeProvider.primaryColor,
-                  isStatic: widget.isCompleted,
+          title:
+              _isEditing
+                  ? TextField(
+                    controller: _editController,
+                    focusNode: _editFocusNode,
+                    autofocus: true,
+                    onSubmitted: (_) => _finishEditing(),
+                    onEditingComplete: _finishEditing,
+                    decoration: const InputDecoration(
+                      isDense: true,
+                      border: InputBorder.none,
+                    ),
+                  )
+                  : GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onSecondaryTapUp:
+                        (details) =>
+                            _showActions(context, details.globalPosition),
+                    onLongPress: () => _showActions(context),
+                    onDoubleTap: _startEditing,
+                    child: CustomText(widget.todo.text, style: textStyle),
+                  ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (_isHovered && !_isEditing)
+                IconButton(
+                  icon: const Icon(Icons.more_horiz),
+                  onPressed: () => _showActions(context),
+                  tooltip: 'その他の操作',
+                ),
+              if (widget.canStartNesting)
+                LongPressDraggable<String>(
+                  data: widget.todo.id,
+                  feedback: Material(
+                    elevation: 4,
+                    borderRadius: BorderRadius.circular(
+                      DesignConstants.borderRadiusStandard,
+                    ),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(maxWidth: 280),
+                      child: ListTile(
+                        dense: true,
+                        leading: const Icon(Icons.subdirectory_arrow_right),
+                        title: Text(widget.todo.text),
+                      ),
+                    ),
+                  ),
+                  child: const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 4),
+                    child: Tooltip(
+                      message: 'ドラッグしてサブタスク化',
+                      child: Icon(Icons.subdirectory_arrow_right),
+                    ),
+                  ),
+                ),
+              IconButtonAtom(
+                icon: Icons.delete_outline,
+                onPressed: widget.onDelete,
+                iconColor: themeProvider.completedTextColor,
+                size: DesignConstants.iconSizeStandard,
+              ),
+              if (!widget.todo.isCompleted && widget.reorderIndex != null) ...[
+                SizedBox(width: DesignConstants.spacingSmall),
+                ReorderableDragStartListener(
+                  index: widget.reorderIndex!,
+                  child: Icon(
+                    Icons.drag_handle,
+                    color: themeProvider.completedTextColor,
+                    size: DesignConstants.iconSizeStandard,
+                  ),
                 ),
               ],
-            ),
-            title:
-                _isEditing
-                    ? TextField(
-                      controller: _editController,
-                      focusNode: _editFocusNode,
-                      autofocus: true,
-                      onSubmitted: (_) => _finishEditing(),
-                      onEditingComplete: _finishEditing,
-                      decoration: const InputDecoration(
-                        isDense: true,
-                        border: InputBorder.none,
-                      ),
-                    )
-                    : CustomText(widget.todo.text, style: textStyle),
-            trailing: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (_isHovered && !_isEditing)
-                  IconButton(
-                    icon: const Icon(Icons.more_horiz),
-                    onPressed: () => _showActions(context),
-                    tooltip: 'その他の操作',
-                  ),
-                if (widget.canStartNesting)
-                  LongPressDraggable<String>(
-                    data: widget.todo.id,
-                    feedback: Material(
-                      elevation: 4,
-                      borderRadius: BorderRadius.circular(
-                        DesignConstants.borderRadiusStandard,
-                      ),
-                      child: ConstrainedBox(
-                        constraints: const BoxConstraints(maxWidth: 280),
-                        child: ListTile(
-                          dense: true,
-                          leading: const Icon(Icons.subdirectory_arrow_right),
-                          title: Text(widget.todo.text),
-                        ),
-                      ),
-                    ),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 4),
-                      child: Tooltip(
-                        message: 'ドラッグしてサブタスク化',
-                        child: Icon(Icons.subdirectory_arrow_right),
-                      ),
-                    ),
-                  ),
-                IconButtonAtom(
-                  icon: Icons.delete_outline,
-                  onPressed: widget.onDelete,
-                  iconColor: themeProvider.completedTextColor,
-                  size: DesignConstants.iconSizeStandard,
-                ),
-                if (!widget.todo.isCompleted &&
-                    widget.reorderIndex != null) ...[
-                  SizedBox(width: DesignConstants.spacingSmall),
-                  ReorderableDragStartListener(
-                    index: widget.reorderIndex!,
-                    child: Icon(
-                      Icons.drag_handle,
-                      color: themeProvider.completedTextColor,
-                      size: DesignConstants.iconSizeStandard,
-                    ),
-                  ),
-                ],
-              ],
-            ),
-            onTap: _isEditing ? null : _animateToggle,
+            ],
           ),
         ),
       ),
