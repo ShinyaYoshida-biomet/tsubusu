@@ -288,6 +288,16 @@ class _TodoPageState extends State<TodoPage> {
     _todoService?.addSubtask(parentId, text);
   }
 
+  Future<bool> _nestTodo(String todoId, String parentId) async {
+    final service = _todoService;
+    if (service == null) return false;
+    return service.nestTodo(todoId, parentId);
+  }
+
+  Future<void> _undoNesting() async {
+    await _todoService?.undoLastNesting();
+  }
+
   void _editTodo(String id, String text) {
     _todoService?.updateTodoText(id, text);
   }
@@ -344,6 +354,8 @@ class _TodoPageState extends State<TodoPage> {
                   onReorderSiblings: _reorderSiblings,
                   onAddSubtask: _addSubtask,
                   onEditTodo: _editTodo,
+                  onNestTodo: _nestTodo,
+                  onUndoNesting: _undoNesting,
                 );
               },
             ),

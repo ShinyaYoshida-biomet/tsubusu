@@ -13,6 +13,7 @@ class TodoItem extends StatefulWidget {
   final VoidCallback onToggle;
   final VoidCallback onDelete;
   final VoidCallback? onAddSubtask;
+  final VoidCallback? onMove;
   final ValueChanged<String>? onEdit;
   final VoidCallback? onToggleExpanded;
   final bool hasChildren;
@@ -20,6 +21,7 @@ class TodoItem extends StatefulWidget {
   final int? reorderIndex;
   final bool isCompleted;
   final bool isSubtask;
+  final bool canStartNesting;
 
   const TodoItem({
     super.key,
@@ -27,6 +29,7 @@ class TodoItem extends StatefulWidget {
     required this.onToggle,
     required this.onDelete,
     this.onAddSubtask,
+    this.onMove,
     this.onEdit,
     this.onToggleExpanded,
     this.hasChildren = false,
@@ -34,6 +37,7 @@ class TodoItem extends StatefulWidget {
     this.reorderIndex,
     this.isCompleted = false,
     this.isSubtask = false,
+    this.canStartNesting = false,
   });
 
   @override
@@ -100,6 +104,8 @@ class _TodoItemState extends State<TodoItem> {
           ),
         if (widget.onAddSubtask != null)
           const PopupMenuItem(value: 'add', child: Text('サブタスクを追加')),
+        if (widget.onMove != null)
+          const PopupMenuItem(value: 'move', child: Text('別のタスクのサブタスクにする')),
         if (widget.onEdit != null)
           const PopupMenuItem(value: 'edit', child: Text('名前を変更')),
         const PopupMenuItem(value: 'delete', child: Text('削除')),
@@ -111,6 +117,8 @@ class _TodoItemState extends State<TodoItem> {
           widget.onToggleExpanded?.call();
         case 'add':
           widget.onAddSubtask?.call();
+        case 'move':
+          widget.onMove?.call();
         case 'edit':
           _startEditing();
         case 'delete':
@@ -196,6 +204,31 @@ class _TodoItemState extends State<TodoItem> {
                     icon: const Icon(Icons.more_horiz),
                     onPressed: () => _showActions(context),
                     tooltip: 'その他の操作',
+                  ),
+                if (widget.canStartNesting)
+                  LongPressDraggable<String>(
+                    data: widget.todo.id,
+                    feedback: Material(
+                      elevation: 4,
+                      borderRadius: BorderRadius.circular(
+                        DesignConstants.borderRadiusStandard,
+                      ),
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 280),
+                        child: ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.subdirectory_arrow_right),
+                          title: Text(widget.todo.text),
+                        ),
+                      ),
+                    ),
+                    child: const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 4),
+                      child: Tooltip(
+                        message: 'ドラッグしてサブタスク化',
+                        child: Icon(Icons.subdirectory_arrow_right),
+                      ),
+                    ),
                   ),
                 IconButtonAtom(
                   icon: Icons.delete_outline,
