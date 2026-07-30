@@ -9,6 +9,7 @@ class TodoListService extends ChangeNotifier {
   final TodoListId listId;
   final TodoRepository _repository;
   List<Todo> _todos = [];
+  List<Todo>? _nestingUndoSnapshot;
   late final Future<void> ready;
   var _isDisposed = false;
 
@@ -79,6 +80,51 @@ class TodoListService extends ChangeNotifier {
     parent.isCompleted = false;
     notifyListeners();
     await _saveTodos();
+  }
+
+  /// Moves [todoId] under [parentId] while keeping its own descendants.
+  ///
+  /// Returns false when either todo does not exist, the move would create a
+  /// cycle, or the todo is already a child of the requested parent.
+  Future<bool> nestTodo(String todoId, String parentId) async {
+    final todo = todoById(todoId);
+    final parent = todoById(parentId);
+    if (todo == null || parent == null || todoId == parentId) return false;
+    if (todo.parentId == parentId || _isDescendant(parentId, todoId)) {
+      return false;
+    }
+
+    final previousParentId = todo.parentId;
+    _nestingUndoSnapshot = _todos.map((item) => item.copyWith()).toList();
+    final todoIndex = _todos.indexWhere((item) => item.id == todoId);
+    _todos[todoIndex] = todo.copyWith(parentId: parentId);
+    if (previousParentId != null) _syncParentCompletion(previousParentId);
+    parent.isCompleted = false;
+    notifyListeners();
+    await _saveTodos();
+    return true;
+  }
+
+  Future<bool> undoLastNesting() async {
+    final snapshot = _nestingUndoSnapshot;
+    if (snapshot == null) return false;
+
+    _todos = snapshot.map((item) => item.copyWith()).toList();
+    _nestingUndoSnapshot = null;
+    notifyListeners();
+    await _saveTodos();
+    return true;
+  }
+
+  bool _isDescendant(String candidateId, String ancestorId) {
+    var current = todoById(candidateId);
+    final visited = <String>{};
+    while (current?.parentId != null) {
+      if (!visited.add(current!.id)) return false;
+      if (current.parentId == ancestorId) return true;
+      current = todoById(current.parentId!);
+    }
+    return false;
   }
 
   Future<void> updateTodoText(String id, String text) async {

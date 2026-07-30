@@ -110,6 +110,40 @@ void main() {
       expect(todoListService.childrenOf(parent.id).single.text, 'Single child');
     });
 
+    test('nests tasks, persists the move, and supports undo', () async {
+      await todoListService.addTodo('Project');
+      await todoListService.addTodo('Design');
+      final parent = todoListService.todos[0];
+      final child = todoListService.todos[1];
+
+      expect(await todoListService.nestTodo(child.id, parent.id), isTrue);
+      expect(todoListService.childrenOf(parent.id).single.id, child.id);
+
+      final reloadedService = TodoListService(listId);
+      await reloadedService.ready;
+      expect(reloadedService.todoById(child.id)!.parentId, parent.id);
+
+      expect(await todoListService.undoLastNesting(), isTrue);
+      expect(todoListService.todoById(child.id)!.parentId, isNull);
+      expect(await todoListService.undoLastNesting(), isFalse);
+    });
+
+    test('rejects nesting onto itself or a descendant', () async {
+      await todoListService.addTodo('Project');
+      await todoListService.addTodo('Design');
+      await todoListService.addTodo('Implementation');
+      final project = todoListService.todos[0];
+      final design = todoListService.todos[1];
+      final implementation = todoListService.todos[2];
+
+      expect(await todoListService.nestTodo(design.id, project.id), isTrue);
+      expect(await todoListService.nestTodo(project.id, design.id), isFalse);
+      expect(
+        await todoListService.nestTodo(implementation.id, implementation.id),
+        isFalse,
+      );
+    });
+
     test('deleting a parent deletes its subtasks', () async {
       await todoListService.addTodo('Project');
       final parent = todoListService.todos.single;
