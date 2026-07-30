@@ -45,12 +45,14 @@ platform :ios do
 
   private_lane :existing_ipa_path do |options|
     ipa_path = options[:ipa] || ENV["IPA_PATH"]
-    return nil if ipa_path.to_s.empty?
-
-    repo_root = File.expand_path("../..", __dir__)
-    resolved_path = File.expand_path(ipa_path, repo_root)
-    UI.user_error!("IPA not found: #{resolved_path}") unless File.file?(resolved_path)
-    resolved_path
+    if ipa_path.to_s.empty?
+      nil
+    else
+      repo_root = File.expand_path("../..", __dir__)
+      resolved_path = File.expand_path(ipa_path, repo_root)
+      UI.user_error!("IPA not found: #{resolved_path}") unless File.file?(resolved_path)
+      resolved_path
+    end
   end
 
   desc "Build an iOS IPA with Flutter"
