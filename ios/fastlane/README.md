@@ -15,13 +15,29 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
+### ios build
+
+```sh
+[bundle exec] fastlane ios build
+```
+
+Build an iOS IPA with Flutter
+
 ### ios beta
 
 ```sh
 [bundle exec] fastlane ios beta
 ```
 
-Build and upload Tsubusu to TestFlight
+Build an IPA with Flutter, or upload IPA_PATH, to TestFlight
+
+### ios release
+
+```sh
+[bundle exec] fastlane ios release
+```
+
+Upload a selected IPA to App Store Connect without submitting it
 
 ----
 
