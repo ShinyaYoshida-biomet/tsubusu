@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:math';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -40,6 +41,50 @@ class TodoListCatalogService {
     final lists = await loadLists();
     if (lists.isNotEmpty) return lists.first;
     return createList();
+  }
+
+  Future<TodoListId?> loadLastActiveListId() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final value = prefs.getString(StorageKeys.lastActiveListId);
+    if (value == null || value.trim().isEmpty) return null;
+    return TodoListId.fromValue(value);
+  }
+
+  Future<void> markListActive(TodoListId listId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(StorageKeys.lastActiveListId, listId.value);
+  }
+
+  Future<bool> hasTodos(TodoListId listId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final todosJson = prefs.getString(StorageKeys.todosForList(listId));
+    return todosJson != null && _decodeTodos(todosJson).isNotEmpty;
+  }
+
+  Future<TodoListRecord?> mostRecentNonEmptyList(
+    List<TodoListRecord> lists,
+  ) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+
+    TodoListRecord? mostRecent;
+    var mostRecentScore = -1;
+    for (final list in lists) {
+      final todosJson = prefs.getString(StorageKeys.todosForList(list.id));
+      if (todosJson == null) continue;
+
+      final todos = _decodeTodos(todosJson);
+      if (todos.isEmpty) continue;
+
+      final score = _recencyScore(list.id, todos);
+      if (mostRecent == null || score > mostRecentScore) {
+        mostRecent = list;
+        mostRecentScore = score;
+      }
+    }
+    return mostRecent;
   }
 
   Future<TodoListRecord> createList({String title = defaultTitle}) async {
@@ -128,6 +173,32 @@ class TodoListCatalogService {
       if (original[index].title != normalized[index].title) return true;
     }
     return false;
+  }
+
+  List<Map<String, dynamic>> _decodeTodos(String encoded) {
+    try {
+      final decoded = jsonDecode(encoded) as List<dynamic>;
+      return [
+        for (final item in decoded)
+          if (item is Map<String, dynamic>) item,
+      ];
+    } catch (_) {
+      return const [];
+    }
+  }
+
+  int _recencyScore(TodoListId listId, List<Map<String, dynamic>> todos) {
+    final listTimestamp = _lastNumericPart(listId.value);
+    final latestTodoTimestamp = todos.fold<int>(
+      0,
+      (latest, todo) => max(latest, int.tryParse('${todo['id']}') ?? 0),
+    );
+    return max(listTimestamp, latestTodoTimestamp);
+  }
+
+  int _lastNumericPart(String value) {
+    final match = RegExp(r'(\d+)$').firstMatch(value);
+    return int.tryParse(match?.group(1) ?? '') ?? 0;
   }
 
   Future<void> _saveLists(

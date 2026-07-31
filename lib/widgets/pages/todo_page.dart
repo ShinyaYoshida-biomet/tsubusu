@@ -42,7 +42,16 @@ class _TodoPageState extends State<TodoPage> {
       for (final list in lists) {
         if (list.id == widget.initialListId) selectedList = list;
       }
-    } else if (WindowManager.supportsWindowManagement) {
+    } else {
+      final lastActiveListId = await _catalog.loadLastActiveListId();
+      if (lastActiveListId != null &&
+          lists.any((list) => list.id == lastActiveListId) &&
+          await _catalog.hasTodos(lastActiveListId)) {
+        selectedList = lists.firstWhere((list) => list.id == lastActiveListId);
+      }
+    }
+    selectedList ??= await _catalog.mostRecentNonEmptyList(lists);
+    if (selectedList == null && WindowManager.supportsWindowManagement) {
       final openListIds = await WindowRegistryService.getOpenListIds();
       for (final list in lists) {
         if (openListIds.contains(list.id.value)) {
@@ -55,6 +64,9 @@ class _TodoPageState extends State<TodoPage> {
     _windowTitle = selectedList.title;
 
     if (WindowManager.supportsWindowManagement) {
+      if (widget.windowController == null) {
+        await _catalog.markListActive(_listId!);
+      }
       await WindowRegistryService.registerOpenList(_listId!.value);
       if (widget.windowController != null) {
         await widget.windowController!.setFrameAutosaveName(
@@ -125,6 +137,7 @@ class _TodoPageState extends State<TodoPage> {
 
   Future<void> _createNewWindow() async {
     final newList = await _catalog.createList();
+    await _catalog.markListActive(newList.id);
     await WindowRegistryService.registerOpenList(newList.id.value);
     await WindowManager.createWindow(
       listId: newList.id.value,
@@ -149,6 +162,7 @@ class _TodoPageState extends State<TodoPage> {
     _todoService = nextService;
     _listId = listId;
     _windowTitle = selected.title;
+    await _catalog.markListActive(listId);
     await nextService.ready;
     previousService?.dispose();
     if (!mounted) return;
