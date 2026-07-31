@@ -86,6 +86,35 @@ void main() {
       },
     );
 
+    test('persists and reloads the last active list', () async {
+      final first = await catalog.createList(title: 'First');
+      final second = await catalog.createList(title: 'Second');
+
+      await catalog.markListActive(second.id);
+
+      expect(await catalog.loadLastActiveListId(), second.id);
+      expect(await catalog.hasTodos(first.id), isFalse);
+    });
+
+    test('finds the most recent non-empty list from persisted data', () async {
+      final older = await catalog.createList(title: 'Older');
+      final newer = await catalog.createList(title: 'Newer');
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        StorageKeys.todosForList(older.id),
+        '[{"id":"100","text":"Older task","isCompleted":false}]',
+      );
+      await prefs.setString(
+        StorageKeys.todosForList(newer.id),
+        '[{"id":"200","text":"Newer task","isCompleted":false}]',
+      );
+
+      final lists = await catalog.loadLists();
+      final mostRecent = await catalog.mostRecentNonEmptyList(lists);
+
+      expect(mostRecent?.id, newer.id);
+    });
+
     test('deletes a list, its tasks, and its open session entry', () async {
       final created = await catalog.createList();
       final prefs = await SharedPreferences.getInstance();
