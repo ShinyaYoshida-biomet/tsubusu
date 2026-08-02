@@ -30,7 +30,7 @@ class _TaskHistoryDialogState extends State<TaskHistoryDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog.adaptive(
+    return AlertDialog(
       title: const Text('Task history'),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420, maxHeight: 420),
@@ -107,7 +107,7 @@ class _TaskHistoryPreviewDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog.adaptive(
+    return AlertDialog(
       title: Text('${history.recencyLabel} · ${history.taskCount} tasks'),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420, maxHeight: 360),

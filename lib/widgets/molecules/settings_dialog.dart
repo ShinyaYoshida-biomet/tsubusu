@@ -35,41 +35,46 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog.adaptive(
+    return AlertDialog(
       title: const CustomText('Settings'),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CustomText(
-            'Task data:',
-            style: TextStyle(fontWeight: FontWeight.bold),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 420, maxWidth: 420),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const CustomText(
+                'Task data:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              ListTile(
+                contentPadding: EdgeInsets.zero,
+                title: const CustomText('Task history'),
+                trailing: const Icon(Icons.history),
+                onTap: () {
+                  Navigator.pop(context);
+                  widget.onOpenTaskHistory?.call();
+                },
+              ),
+              const SizedBox(height: 8),
+              const CustomText(
+                'Theme:',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 8),
+              ...AppTheme.predefinedThemes.map(
+                (theme) => RadioListTile<ThemeType>(
+                  title: CustomText(theme.displayName),
+                  value: theme.type,
+                  groupValue: _selectedThemeType,
+                  onChanged: _handleThemeChange,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                ),
+              ),
+            ],
           ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: const CustomText('Task history'),
-            trailing: const Icon(Icons.history),
-            onTap: () {
-              Navigator.pop(context);
-              widget.onOpenTaskHistory?.call();
-            },
-          ),
-          const SizedBox(height: 8),
-          const CustomText(
-            'Theme:',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 8),
-          ...AppTheme.predefinedThemes.map(
-            (theme) => RadioListTile<ThemeType>(
-              title: CustomText(theme.displayName),
-              value: theme.type,
-              groupValue: _selectedThemeType,
-              onChanged: _handleThemeChange,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-            ),
-          ),
-        ],
+        ),
       ),
       actions: [
         TextButton(

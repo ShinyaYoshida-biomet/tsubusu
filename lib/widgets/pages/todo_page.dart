@@ -179,7 +179,7 @@ class _TodoPageState extends State<TodoPage> {
     final selectedListId = await showAdaptiveDialog<TodoListId>(
       context: context,
       builder: (dialogContext) {
-        return AlertDialog.adaptive(
+        return AlertDialog(
           title: const Text('Todo lists'),
           content: SizedBox(
             width: 320,
