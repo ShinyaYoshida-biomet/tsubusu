@@ -34,38 +34,41 @@ class _TaskHistoryDialogState extends State<TaskHistoryDialog> {
       title: const Text('Task history'),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420, maxHeight: 420),
-        child: SizedBox(
-          width: double.infinity,
-          height: 420,
-          child: FutureBuilder<List<TodoListHistory>>(
-            future: widget.catalog.loadTaskHistory(includeEmpty: _includeEmpty),
-            builder: (context, snapshot) {
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              final histories = snapshot.data!;
-              if (histories.isEmpty) {
-                return const Center(child: Text('No task history found.'));
-              }
-              return ListView.separated(
-                itemCount: histories.length,
-                separatorBuilder: (_, _) => const Divider(height: 1),
-                itemBuilder: (context, index) {
-                  final history = histories[index];
-                  return ListTile(
-                    title: Text(history.recencyLabel),
-                    subtitle: Text(
-                      '${history.taskCount} tasks · ${history.formatLabel}',
-                    ),
-                    trailing: TextButton(
-                      onPressed: () => _previewHistory(history),
-                      child: const Text('View'),
-                    ),
-                  );
-                },
+        child: FutureBuilder<List<TodoListHistory>>(
+          future: widget.catalog.loadTaskHistory(includeEmpty: _includeEmpty),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Padding(
+                padding: EdgeInsets.all(24),
+                child: Center(child: CircularProgressIndicator()),
               );
-            },
-          ),
+            }
+            final histories = snapshot.data!;
+            if (histories.isEmpty) {
+              return const Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Text('No task history found.'),
+              );
+            }
+            return ListView.separated(
+              shrinkWrap: true,
+              itemCount: histories.length,
+              separatorBuilder: (_, _) => const Divider(height: 1),
+              itemBuilder: (context, index) {
+                final history = histories[index];
+                return ListTile(
+                  title: Text(history.recencyLabel),
+                  subtitle: Text(
+                    '${history.taskCount} tasks · ${history.formatLabel}',
+                  ),
+                  trailing: TextButton(
+                    onPressed: () => _previewHistory(history),
+                    child: const Text('View'),
+                  ),
+                );
+              },
+            );
+          },
         ),
       ),
       actions: [
@@ -108,26 +111,21 @@ class _TaskHistoryPreviewDialog extends StatelessWidget {
       title: Text('${history.recencyLabel} · ${history.taskCount} tasks'),
       content: ConstrainedBox(
         constraints: const BoxConstraints(maxWidth: 420, maxHeight: 360),
-        child: SizedBox(
-          width: double.infinity,
-          height: 360,
-          child: ListView.builder(
-            itemCount: history.todos.length,
-            itemBuilder: (context, index) {
-              final todo = history.todos[index];
-              return ListTile(
-                contentPadding: EdgeInsets.only(
-                  left: 16.0 + _depthOf(todo) * 20,
-                ),
-                leading: Icon(
-                  todo.isCompleted
-                      ? Icons.check_box
-                      : Icons.check_box_outline_blank,
-                ),
-                title: Text(todo.text),
-              );
-            },
-          ),
+        child: ListView.builder(
+          shrinkWrap: true,
+          itemCount: history.todos.length,
+          itemBuilder: (context, index) {
+            final todo = history.todos[index];
+            return ListTile(
+              contentPadding: EdgeInsets.only(left: 16.0 + _depthOf(todo) * 20),
+              leading: Icon(
+                todo.isCompleted
+                    ? Icons.check_box
+                    : Icons.check_box_outline_blank,
+              ),
+              title: Text(todo.text),
+            );
+          },
         ),
       ),
       actions: [
