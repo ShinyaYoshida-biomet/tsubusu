@@ -1,5 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/design_constants.dart';
@@ -46,14 +47,35 @@ class TodoItem extends StatefulWidget {
 class _TodoItemState extends State<TodoItem> {
   final _editController = TextEditingController();
   final _editFocusNode = FocusNode();
+  final _dragFocusNode = FocusNode();
   bool _isHovered = false;
   bool _isEditing = false;
+  int _dragVersion = 0;
 
   @override
   void dispose() {
     _editController.dispose();
     _editFocusNode.dispose();
+    _dragFocusNode.dispose();
     super.dispose();
+  }
+
+  KeyEventResult _handleDragKey(FocusNode node, KeyEvent event) {
+    if (event is KeyDownEvent &&
+        event.logicalKey == LogicalKeyboardKey.escape) {
+      setState(() => _dragVersion++);
+      node.unfocus();
+      return KeyEventResult.handled;
+    }
+    return KeyEventResult.ignored;
+  }
+
+  Offset _dragHandleAnchor(
+    Draggable<Object> draggable,
+    BuildContext context,
+    Offset position,
+  ) {
+    return const Offset(248, 24);
   }
 
   void _startEditing() {
@@ -256,25 +278,33 @@ class _TodoItemState extends State<TodoItem> {
               ),
               if (!widget.todo.isCompleted && widget.reorderIndex != null) ...[
                 SizedBox(width: DesignConstants.spacingSmall),
-                LongPressDraggable<String>(
-                  data: widget.todo.id,
-                  feedback: Material(
-                    elevation: 4,
-                    borderRadius: BorderRadius.circular(
-                      DesignConstants.borderRadiusStandard,
-                    ),
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 280),
-                      child: ListTile(
-                        dense: true,
-                        leading: const Icon(Icons.drag_handle),
-                        title: Text(widget.todo.text),
+                Focus(
+                  focusNode: _dragFocusNode,
+                  onKeyEvent: _handleDragKey,
+                  child: LongPressDraggable<String>(
+                    key: ValueKey('${widget.todo.id}-drag-$_dragVersion'),
+                    data: widget.todo.id,
+                    dragAnchorStrategy: _dragHandleAnchor,
+                    onDragStarted: _dragFocusNode.requestFocus,
+                    onDragEnd: (_) => _dragFocusNode.unfocus(),
+                    feedback: Material(
+                      elevation: 4,
+                      borderRadius: BorderRadius.circular(
+                        DesignConstants.borderRadiusStandard,
+                      ),
+                      child: SizedBox(
+                        width: 280,
+                        child: ListTile(
+                          dense: true,
+                          leading: const Icon(Icons.drag_handle),
+                          title: Text(widget.todo.text),
+                        ),
                       ),
                     ),
-                  ),
-                  child: const Tooltip(
-                    message: 'Drag to reorder or make a subtask',
-                    child: Icon(Icons.drag_handle),
+                    child: const Tooltip(
+                      message: 'Drag to reorder or make a subtask',
+                      child: Icon(Icons.drag_handle),
+                    ),
                   ),
                 ),
               ],
