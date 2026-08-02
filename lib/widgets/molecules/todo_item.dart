@@ -22,7 +22,6 @@ class TodoItem extends StatefulWidget {
   final int? reorderIndex;
   final bool isCompleted;
   final bool isSubtask;
-  final bool canStartNesting;
 
   const TodoItem({
     super.key,
@@ -38,7 +37,6 @@ class TodoItem extends StatefulWidget {
     this.reorderIndex,
     this.isCompleted = false,
     this.isSubtask = false,
-    this.canStartNesting = false,
   });
 
   @override
@@ -250,7 +248,14 @@ class _TodoItemState extends State<TodoItem> {
                   onPressed: () => _showActions(context),
                   tooltip: 'その他の操作',
                 ),
-              if (widget.canStartNesting)
+              IconButtonAtom(
+                icon: Icons.delete_outline,
+                onPressed: widget.onDelete,
+                iconColor: themeProvider.completedTextColor,
+                size: DesignConstants.iconSizeStandard,
+              ),
+              if (!widget.todo.isCompleted && widget.reorderIndex != null) ...[
+                SizedBox(width: DesignConstants.spacingSmall),
                 LongPressDraggable<String>(
                   data: widget.todo.id,
                   feedback: Material(
@@ -262,33 +267,14 @@ class _TodoItemState extends State<TodoItem> {
                       constraints: const BoxConstraints(maxWidth: 280),
                       child: ListTile(
                         dense: true,
-                        leading: const Icon(Icons.subdirectory_arrow_right),
+                        leading: const Icon(Icons.drag_handle),
                         title: Text(widget.todo.text),
                       ),
                     ),
                   ),
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 4),
-                    child: Tooltip(
-                      message: 'ドラッグしてサブタスク化',
-                      child: Icon(Icons.subdirectory_arrow_right),
-                    ),
-                  ),
-                ),
-              IconButtonAtom(
-                icon: Icons.delete_outline,
-                onPressed: widget.onDelete,
-                iconColor: themeProvider.completedTextColor,
-                size: DesignConstants.iconSizeStandard,
-              ),
-              if (!widget.todo.isCompleted && widget.reorderIndex != null) ...[
-                SizedBox(width: DesignConstants.spacingSmall),
-                ReorderableDragStartListener(
-                  index: widget.reorderIndex!,
-                  child: Icon(
-                    Icons.drag_handle,
-                    color: themeProvider.completedTextColor,
-                    size: DesignConstants.iconSizeStandard,
+                  child: const Tooltip(
+                    message: 'Drag to reorder or make a subtask',
+                    child: Icon(Icons.drag_handle),
                   ),
                 ),
               ],
