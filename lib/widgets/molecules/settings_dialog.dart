@@ -33,29 +33,31 @@ class _SettingsDialogState extends State<SettingsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog.adaptive(
+    return AlertDialog(
       title: const CustomText('Settings'),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Theme Selection Section
-            const CustomText(
-              'Theme:',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            ...AppTheme.predefinedThemes.map(
-              (theme) => RadioListTile<ThemeType>(
-                title: CustomText(theme.displayName),
-                value: theme.type,
-                groupValue: _selectedThemeType,
-                onChanged: _handleThemeChange,
-                contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+      content: ConstrainedBox(
+        constraints: const BoxConstraints(maxHeight: 420, maxWidth: 420),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const CustomText(
+                'Theme:',
+                style: TextStyle(fontWeight: FontWeight.bold),
               ),
-            ),
-          ],
+              const SizedBox(height: 8),
+              ...AppTheme.predefinedThemes.map(
+                (theme) => RadioListTile<ThemeType>(
+                  title: CustomText(theme.displayName),
+                  value: theme.type,
+                  groupValue: _selectedThemeType,
+                  onChanged: _handleThemeChange,
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
       actions: [

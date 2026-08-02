@@ -4,7 +4,9 @@ import 'dart:math';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../constants/storage_keys.dart';
+import '../models/todo.dart';
 import '../models/todo_list_id.dart';
+import '../models/todo_list_history.dart';
 import '../models/todo_list_record.dart';
 
 class TodoListCatalogService {
@@ -85,6 +87,77 @@ class TodoListCatalogService {
       }
     }
     return mostRecent;
+  }
+
+  Future<List<TodoListHistory>> loadTaskHistory({
+    bool includeEmpty = false,
+  }) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final lists = await loadLists();
+    final titles = {for (final list in lists) list.id.value: list.title};
+    final currentListIds = titles.keys.toSet();
+    final encodedById = <String, String>{};
+
+    for (final key in prefs.getKeys()) {
+      if (key.startsWith('todos_list_')) {
+        final id = key.substring('todos_list_'.length);
+        final encoded = prefs.getString(key);
+        if (id.isNotEmpty && !currentListIds.contains(id) && encoded != null) {
+          encodedById[id] = encoded;
+        }
+      } else if (key.startsWith(StorageKeys.legacyWindowTodosPrefix)) {
+        final suffix = key.substring(
+          StorageKeys.legacyWindowTodosPrefix.length,
+        );
+        final id = TodoListId.fromLegacyWindowId('window_$suffix').value;
+        final encoded = prefs.getString(key);
+        if (encoded != null && !encodedById.containsKey(id)) {
+          encodedById[id] = encoded;
+        }
+      }
+    }
+
+    final histories = <TodoListHistory>[];
+    for (final entry in encodedById.entries) {
+      final todos = _decodeTodoModels(entry.value);
+      if (!includeEmpty && todos.isEmpty) continue;
+      final id = TodoListId.fromValue(entry.key);
+      histories.add(
+        TodoListHistory(
+          id: id,
+          title: titles[entry.key] ?? defaultTitle,
+          todos: todos,
+          isLegacy: entry.key.startsWith('legacy_'),
+          recencyScore: _recencyScore(id, [
+            for (final todo in todos) todo.toJson(),
+          ]),
+        ),
+      );
+    }
+
+    histories.sort((a, b) {
+      final score = b.recencyScore.compareTo(a.recencyScore);
+      return score != 0 ? score : b.id.value.compareTo(a.id.value);
+    });
+    return histories;
+  }
+
+  Future<TodoListRecord> restoreHistory(TodoListHistory history) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
+    final lists = await _loadListsFromPreferences(prefs);
+    final restored = TodoListRecord(
+      id: TodoListId.create(),
+      title: '${history.title} (Recovered)',
+    );
+    lists.add(restored);
+    await _saveLists(prefs, lists);
+    await prefs.setString(
+      StorageKeys.todosForList(restored.id),
+      jsonEncode(history.todos.map((todo) => todo.toJson()).toList()),
+    );
+    return restored;
   }
 
   Future<TodoListRecord> createList({String title = defaultTitle}) async {
@@ -185,6 +258,19 @@ class TodoListCatalogService {
     } catch (_) {
       return const [];
     }
+  }
+
+  List<Todo> _decodeTodoModels(String encoded) {
+    final todos = <Todo>[];
+    for (final item in _decodeTodos(encoded)) {
+      try {
+        todos.add(Todo.fromJson(item));
+      } catch (_) {
+        // Ignore malformed records while keeping the rest of the history
+        // available for preview and recovery.
+      }
+    }
+    return todos;
   }
 
   int _recencyScore(TodoListId listId, List<Map<String, dynamic>> todos) {
