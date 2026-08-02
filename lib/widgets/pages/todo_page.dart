@@ -176,87 +176,90 @@ class _TodoPageState extends State<TodoPage> {
   }
 
   Future<void> _showLists() async {
+    final lists = await _catalog.loadLists();
+    final recoverableHistory = await _catalog.loadTaskHistory();
+    if (!mounted) return;
+    var shouldRecoverOldData = false;
     final selectedListId = await showAdaptiveDialog<TodoListId>(
       context: context,
       builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Todo lists'),
-          content: SizedBox(
-            width: 320,
-            child: FutureBuilder<List<TodoListRecord>>(
-              future: _catalog.loadLists(),
-              builder: (context, snapshot) {
-                if (!snapshot.hasData) {
-                  return const SizedBox(
-                    height: 100,
-                    child: Center(child: CircularProgressIndicator()),
-                  );
-                }
-                final lists = snapshot.data!;
-                return ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: lists.length,
-                  itemBuilder: (context, index) {
-                    final list = lists[index];
-                    return ListTile(
-                      selected: list.id == _listId,
-                      leading: const Icon(Icons.check_box_outlined),
-                      title: Text(list.title),
-                      onTap: () => Navigator.pop(dialogContext, list.id),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline),
-                        tooltip: 'Delete list',
-                        onPressed: () async {
-                          if (lists.length == 1) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text('At least one list must remain.'),
-                              ),
-                            );
-                            return;
-                          }
-                          final confirmed = await showAdaptiveDialog<bool>(
-                            context: dialogContext,
-                            builder:
-                                (context) => AlertDialog.adaptive(
-                                  title: const Text('Delete list?'),
-                                  content: Text(
-                                    'Delete "${list.title}" and all of its tasks?',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed:
-                                          () => Navigator.pop(context, false),
-                                      child: const Text('Cancel'),
-                                    ),
-                                    FilledButton(
-                                      onPressed:
-                                          () => Navigator.pop(context, true),
-                                      child: const Text('Delete'),
-                                    ),
-                                  ],
-                                ),
+          content: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 420, maxHeight: 420),
+            child: SizedBox(
+              width: 320,
+              child: ListView.builder(
+                shrinkWrap: true,
+                itemCount: lists.length,
+                itemBuilder: (context, index) {
+                  final list = lists[index];
+                  return ListTile(
+                    selected: list.id == _listId,
+                    leading: const Icon(Icons.check_box_outlined),
+                    title: Text(list.title),
+                    onTap: () => Navigator.pop(dialogContext, list.id),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete_outline),
+                      tooltip: 'Delete list',
+                      onPressed: () async {
+                        if (lists.length == 1) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('At least one list must remain.'),
+                            ),
                           );
-                          if (confirmed != true) return;
-                          await _catalog.deleteList(list.id);
-                          if (!dialogContext.mounted) return;
-                          if (list.id == _listId) {
-                            final fallback = lists.firstWhere(
-                              (candidate) => candidate.id != list.id,
-                            );
-                            Navigator.pop(dialogContext, fallback.id);
-                          } else {
-                            Navigator.pop(dialogContext);
-                          }
-                        },
-                      ),
-                    );
-                  },
-                );
-              },
+                          return;
+                        }
+                        final confirmed = await showAdaptiveDialog<bool>(
+                          context: dialogContext,
+                          builder:
+                              (context) => AlertDialog.adaptive(
+                                title: const Text('Delete list?'),
+                                content: Text(
+                                  'Delete "${list.title}" and all of its tasks?',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, false),
+                                    child: const Text('Cancel'),
+                                  ),
+                                  FilledButton(
+                                    onPressed:
+                                        () => Navigator.pop(context, true),
+                                    child: const Text('Delete'),
+                                  ),
+                                ],
+                              ),
+                        );
+                        if (confirmed != true) return;
+                        await _catalog.deleteList(list.id);
+                        if (!dialogContext.mounted) return;
+                        if (list.id == _listId) {
+                          final fallback = lists.firstWhere(
+                            (candidate) => candidate.id != list.id,
+                          );
+                          Navigator.pop(dialogContext, fallback.id);
+                        } else {
+                          Navigator.pop(dialogContext);
+                        }
+                      },
+                    ),
+                  );
+                },
+              ),
             ),
           ),
           actions: [
+            if (recoverableHistory.isNotEmpty)
+              TextButton(
+                onPressed: () {
+                  shouldRecoverOldData = true;
+                  Navigator.pop(dialogContext);
+                },
+                child: const Text('Recover old data'),
+              ),
             TextButton(
               onPressed: () async {
                 final newList = await _catalog.createList();
@@ -276,6 +279,8 @@ class _TodoPageState extends State<TodoPage> {
     );
     if (selectedListId != null && mounted) {
       await _switchList(selectedListId);
+    } else if (shouldRecoverOldData && mounted) {
+      await _showTaskHistory();
     }
   }
 
@@ -335,14 +340,7 @@ class _TodoPageState extends State<TodoPage> {
   void _showSettings() {
     showAdaptiveDialog(
       context: context,
-      builder:
-          (context) => SettingsDialog(
-            onOpenTaskHistory: () {
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _showTaskHistory();
-              });
-            },
-          ),
+      builder: (context) => const SettingsDialog(),
     );
   }
 

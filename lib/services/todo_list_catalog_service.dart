@@ -96,13 +96,16 @@ class TodoListCatalogService {
     await prefs.reload();
     final lists = await loadLists();
     final titles = {for (final list in lists) list.id.value: list.title};
+    final currentListIds = titles.keys.toSet();
     final encodedById = <String, String>{};
 
     for (final key in prefs.getKeys()) {
       if (key.startsWith('todos_list_')) {
         final id = key.substring('todos_list_'.length);
         final encoded = prefs.getString(key);
-        if (id.isNotEmpty && encoded != null) encodedById[id] = encoded;
+        if (id.isNotEmpty && !currentListIds.contains(id) && encoded != null) {
+          encodedById[id] = encoded;
+        }
       } else if (key.startsWith(StorageKeys.legacyWindowTodosPrefix)) {
         final suffix = key.substring(
           StorageKeys.legacyWindowTodosPrefix.length,

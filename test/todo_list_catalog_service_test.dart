@@ -115,10 +115,17 @@ void main() {
       expect(mostRecent?.id, newer.id);
     });
 
-    test('discovers current and legacy task histories newest first', () async {
+    test('discovers orphaned and legacy task histories newest first', () async {
+      final current = TodoListRecord(
+        id: TodoListId.fromValue('list_current'),
+        title: 'Current list',
+      );
       SharedPreferences.setMockInitialValues({
+        StorageKeys.todoListCatalog: jsonEncode([current.toJson()]),
+        'todos_list_list_current':
+            '[{"id":"400","text":"Current","isCompleted":false}]',
         'todos_list_list_200':
-            '[{"id":"200","text":"Current","isCompleted":false}]',
+            '[{"id":"200","text":"Orphaned","isCompleted":false}]',
         'todos_window_window_1':
             '[{"id":"100","text":"Legacy","isCompleted":false}]',
         'todos_list_list_300': '[]',
@@ -138,9 +145,11 @@ void main() {
       'restores a history as a new list without changing the source',
       () async {
         SharedPreferences.setMockInitialValues({
+          StorageKeys.todoListCatalog: '[]',
           'todos_list_list_200':
               '[{"id":"200","text":"Keep this","isCompleted":true}]',
         });
+        await catalog.ensureDefaultList();
         final history = (await catalog.loadTaskHistory()).single;
         final prefs = await SharedPreferences.getInstance();
 

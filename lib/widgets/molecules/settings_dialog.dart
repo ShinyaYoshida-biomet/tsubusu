@@ -5,9 +5,7 @@ import '../../providers/theme_provider.dart';
 import '../atoms/custom_text.dart';
 
 class SettingsDialog extends StatefulWidget {
-  final VoidCallback? onOpenTaskHistory;
-
-  const SettingsDialog({super.key, this.onOpenTaskHistory});
+  const SettingsDialog({super.key});
 
   @override
   State<SettingsDialog> createState() => _SettingsDialogState();
@@ -44,20 +42,6 @@ class _SettingsDialogState extends State<SettingsDialog> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const CustomText(
-                'Task data:',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              ListTile(
-                contentPadding: EdgeInsets.zero,
-                title: const CustomText('Task history'),
-                trailing: const Icon(Icons.history),
-                onTap: () {
-                  Navigator.pop(context);
-                  widget.onOpenTaskHistory?.call();
-                },
-              ),
-              const SizedBox(height: 8),
               const CustomText(
                 'Theme:',
                 style: TextStyle(fontWeight: FontWeight.bold),
