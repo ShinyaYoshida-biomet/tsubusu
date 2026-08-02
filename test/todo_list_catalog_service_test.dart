@@ -115,6 +115,47 @@ void main() {
       expect(mostRecent?.id, newer.id);
     });
 
+    test('discovers current and legacy task histories newest first', () async {
+      SharedPreferences.setMockInitialValues({
+        'todos_list_list_200':
+            '[{"id":"200","text":"Current","isCompleted":false}]',
+        'todos_window_window_1':
+            '[{"id":"100","text":"Legacy","isCompleted":false}]',
+        'todos_list_list_300': '[]',
+      });
+
+      final histories = await catalog.loadTaskHistory();
+      final allHistories = await catalog.loadTaskHistory(includeEmpty: true);
+
+      expect(histories, hasLength(2));
+      expect(histories.first.id, TodoListId.fromValue('list_200'));
+      expect(histories.first.isLegacy, isFalse);
+      expect(histories.last.isLegacy, isTrue);
+      expect(allHistories, hasLength(3));
+    });
+
+    test(
+      'restores a history as a new list without changing the source',
+      () async {
+        SharedPreferences.setMockInitialValues({
+          'todos_list_list_200':
+              '[{"id":"200","text":"Keep this","isCompleted":true}]',
+        });
+        final history = (await catalog.loadTaskHistory()).single;
+        final prefs = await SharedPreferences.getInstance();
+
+        final restored = await catalog.restoreHistory(history);
+
+        expect(restored.id, isNot(history.id));
+        expect(prefs.getString('todos_list_list_200'), contains('Keep this'));
+        expect(
+          prefs.getString(StorageKeys.todosForList(restored.id)),
+          contains('Keep this'),
+        );
+        expect(restored.title, 'tsubusu (Recovered)');
+      },
+    );
+
     test('deletes a list, its tasks, and its open session entry', () async {
       final created = await catalog.createList();
       final prefs = await SharedPreferences.getInstance();

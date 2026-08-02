@@ -9,6 +9,7 @@ import '../../services/window_manager.dart';
 import '../organisms/app_header.dart';
 import '../organisms/todo_list.dart';
 import '../molecules/settings_dialog.dart';
+import '../molecules/task_history_dialog.dart';
 
 class TodoPage extends StatefulWidget {
   final WindowController? windowController;
@@ -334,8 +335,25 @@ class _TodoPageState extends State<TodoPage> {
   void _showSettings() {
     showAdaptiveDialog(
       context: context,
-      builder: (context) => const SettingsDialog(),
+      builder:
+          (context) => SettingsDialog(
+            onOpenTaskHistory: () {
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) _showTaskHistory();
+              });
+            },
+          ),
     );
+  }
+
+  Future<void> _showTaskHistory() async {
+    final restoredListId = await showAdaptiveDialog<TodoListId>(
+      context: context,
+      builder: (context) => TaskHistoryDialog(catalog: _catalog),
+    );
+    if (restoredListId != null && mounted) {
+      await _switchList(restoredListId);
+    }
   }
 
   @override
