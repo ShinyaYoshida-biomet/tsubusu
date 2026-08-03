@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -34,6 +36,8 @@ class TodoList extends StatefulWidget {
 
 class _TodoListState extends State<TodoList> {
   final _collapsedIds = <String>{};
+  Timer? _pendingExpansionTimer;
+  String? _pendingExpansionId;
   String? _addingForId;
   double _completedSectionHeight = 200.0;
   final double _minCompletedHeight = 80.0;
@@ -46,6 +50,32 @@ class _TodoListState extends State<TodoList> {
     setState(() {
       if (!_collapsedIds.add(id)) _collapsedIds.remove(id);
     });
+  }
+
+  void _scheduleExpansion(Todo target) {
+    if (_childrenOf(target.id).isNotEmpty &&
+        _collapsedIds.contains(target.id)) {
+      if (_pendingExpansionId == target.id) return;
+      _pendingExpansionTimer?.cancel();
+      _pendingExpansionId = target.id;
+      _pendingExpansionTimer = Timer(const Duration(milliseconds: 500), () {
+        if (!mounted || _pendingExpansionId != target.id) return;
+        setState(() => _collapsedIds.remove(target.id));
+        _pendingExpansionId = null;
+      });
+    }
+  }
+
+  void _cancelExpansion() {
+    _pendingExpansionTimer?.cancel();
+    _pendingExpansionTimer = null;
+    _pendingExpansionId = null;
+  }
+
+  @override
+  void dispose() {
+    _cancelExpansion();
+    super.dispose();
   }
 
   bool _canNest(String sourceId, String targetId) {
@@ -119,8 +149,14 @@ class _TodoListState extends State<TodoList> {
   }) {
     return DragTarget<String>(
       key: key,
-      onWillAcceptWithDetails: (details) => _canNest(details.data, target.id),
+      onWillAcceptWithDetails: (details) {
+        final canNest = _canNest(details.data, target.id);
+        if (canNest) _scheduleExpansion(target);
+        return canNest;
+      },
+      onLeave: (_) => _cancelExpansion(),
       onAcceptWithDetails: (details) async {
+        _cancelExpansion();
         final sources = widget.todos.where((todo) => todo.id == details.data);
         if (sources.isEmpty) return;
         await _nestInto(sources.first, target);
@@ -140,6 +176,66 @@ class _TodoListState extends State<TodoList> {
             ),
           ),
           child: child,
+        );
+      },
+    );
+  }
+
+  bool _canReorderAt(String? parentId, String sourceId) {
+    final source =
+        widget.todos.where((todo) => todo.id == sourceId).firstOrNull;
+    return source != null && source.parentId == parentId;
+  }
+
+  Future<void> _reorderAt(
+    String? parentId,
+    int dropIndex,
+    String sourceId,
+  ) async {
+    final siblings =
+        widget.todos.where((todo) => todo.parentId == parentId).toList();
+    final oldIndex = siblings.indexWhere((todo) => todo.id == sourceId);
+    if (oldIndex == -1 || oldIndex == dropIndex) return;
+
+    final newIndex =
+        dropIndex == siblings.length
+            ? dropIndex
+            : oldIndex < dropIndex
+            ? dropIndex + 1
+            : dropIndex;
+    widget.onReorderSiblings?.call(parentId, oldIndex, newIndex);
+  }
+
+  Widget _reorderDropZone(String? parentId, int dropIndex) {
+    return DragTarget<String>(
+      key: ValueKey('drop-zone-$parentId-$dropIndex'),
+      onWillAcceptWithDetails:
+          (details) => _canReorderAt(parentId, details.data),
+      onAcceptWithDetails:
+          (details) => _reorderAt(parentId, dropIndex, details.data),
+      builder: (context, candidateData, rejectedData) {
+        final isDropTarget = candidateData.isNotEmpty;
+        final themeProvider = Provider.of<ThemeProvider>(context);
+        return AnimatedContainer(
+          duration: const Duration(milliseconds: 120),
+          height: isDropTarget ? 24 : 8,
+          margin: const EdgeInsets.symmetric(horizontal: 8),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            color:
+                isDropTarget
+                    ? themeProvider.primaryColor.withValues(alpha: 0.35)
+                    : Colors.transparent,
+          ),
+          child:
+              isDropTarget
+                  ? Center(
+                    child: Container(
+                      height: 2,
+                      color: themeProvider.primaryColor,
+                    ),
+                  )
+                  : null,
         );
       },
     );
@@ -177,19 +273,18 @@ class _TodoListState extends State<TodoList> {
                   ),
                 ),
                 Expanded(
-                  child: ReorderableListView.builder(
+                  child: ListView.builder(
                     padding: const EdgeInsets.all(8),
-                    buildDefaultDragHandles: false,
-                    itemCount: openRoots.length,
-                    onReorder:
-                        (oldIndex, newIndex) => widget.onReorderSiblings?.call(
-                          null,
-                          oldIndex,
-                          newIndex,
-                        ),
+                    itemCount: openRoots.length * 2 + 1,
                     itemBuilder:
                         (context, index) =>
-                            _buildGroup(context, openRoots[index], index),
+                            index.isEven
+                                ? _reorderDropZone(null, index ~/ 2)
+                                : _buildGroup(
+                                  context,
+                                  openRoots[index ~/ 2],
+                                  index ~/ 2,
+                                ),
                   ),
                 ),
               ],
@@ -302,46 +397,43 @@ class _TodoListState extends State<TodoList> {
               onToggleExpanded: () => _toggleExpanded(parent.id),
               reorderIndex: completed ? null : rootReorderIndex,
               isCompleted: completed,
-              canStartNesting: !completed,
             ),
           ),
           if (children.isNotEmpty && isExpanded)
-            ReorderableListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              buildDefaultDragHandles: false,
-              itemCount: children.length,
-              onReorder:
-                  (oldIndex, newIndex) => widget.onReorderSiblings?.call(
-                    parent.id,
-                    oldIndex,
-                    newIndex,
-                  ),
-              itemBuilder: (context, index) {
-                final child = children[index];
-                return Padding(
-                  key: ValueKey(child.id),
-                  padding: const EdgeInsets.only(left: 24, right: 24),
-                  child: _nestTarget(
-                    context,
-                    child,
-                    TodoItem(
-                      todo: child,
-                      isSubtask: true,
-                      onToggle: () => widget.onToggleTodo(child.id),
-                      onDelete: () => widget.onDeleteTodo(child.id),
-                      onMove:
-                          !completed
-                              ? () => _chooseNestTarget(context, child)
-                              : null,
-                      onEdit: (text) => widget.onEditTodo(child.id, text),
-                      reorderIndex: completed ? null : index,
-                      isCompleted: completed,
-                      canStartNesting: !completed,
+            Column(
+              children: [
+                for (var index = 0; index <= children.length; index++) ...[
+                  _reorderDropZone(parent.id, index),
+                  if (index < children.length)
+                    Padding(
+                      padding: const EdgeInsets.only(left: 24, right: 24),
+                      child: _nestTarget(
+                        context,
+                        children[index],
+                        TodoItem(
+                          todo: children[index],
+                          isSubtask: true,
+                          onToggle:
+                              () => widget.onToggleTodo(children[index].id),
+                          onDelete:
+                              () => widget.onDeleteTodo(children[index].id),
+                          onMove:
+                              !completed
+                                  ? () => _chooseNestTarget(
+                                    context,
+                                    children[index],
+                                  )
+                                  : null,
+                          onEdit:
+                              (text) =>
+                                  widget.onEditTodo(children[index].id, text),
+                          reorderIndex: completed ? null : index,
+                          isCompleted: completed,
+                        ),
+                      ),
                     ),
-                  ),
-                );
-              },
+                ],
+              ],
             ),
           if (_addingForId == parent.id)
             Padding(
