@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 
 import '../models/todo.dart';
 import '../models/todo_list_id.dart';
@@ -158,8 +159,18 @@ class TodoListService extends ChangeNotifier {
     } else if (todo.parentId != null) {
       _syncParentCompletion(todo.parentId!);
     }
+    if (nextValue) {
+      _triggerCompletionHaptic();
+    }
     notifyListeners();
     await _saveTodos();
+  }
+
+  void _triggerCompletionHaptic() {
+    if (defaultTargetPlatform == TargetPlatform.iOS ||
+        defaultTargetPlatform == TargetPlatform.android) {
+      HapticFeedback.mediumImpact();
+    }
   }
 
   void _syncParentCompletion(String parentId) {
