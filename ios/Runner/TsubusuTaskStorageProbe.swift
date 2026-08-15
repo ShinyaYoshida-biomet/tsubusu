@@ -1,8 +1,8 @@
-import AppIntents
 import Foundation
 
 /// The JSON contract currently written by the Flutter Todo model.
-struct TsubusuStoredTodo: Codable, Equatable {
+/// This probe only decodes the contract; it never rewrites production tasks.
+struct TsubusuStoredTodo: Decodable, Equatable {
   let id: String
   let text: String
   let isCompleted: Bool
@@ -12,6 +12,12 @@ struct TsubusuStoredTodo: Codable, Equatable {
 struct TsubusuTaskStorageSnapshot: Equatable {
   let listID: String
   let todos: [TsubusuStoredTodo]
+}
+
+struct TsubusuStorageProbeRecord: Codable, Equatable {
+  let id: String
+  let observedListID: String
+  let observedTaskCount: Int
 }
 
 enum TsubusuTaskStorageError: LocalizedError {
@@ -34,13 +40,13 @@ enum TsubusuTaskStorageError: LocalizedError {
 /// A deliberately small adapter for the storage contract shared with Dart.
 ///
 /// The legacy shared_preferences Dart API applies the `flutter.` prefix before
-/// passing keys to shared_preferences_foundation. Keeping the constants here
-/// explicit makes the interoperability assumption easy to test and review
-/// before implementing production CRUD intents.
+/// passing keys to shared_preferences_foundation. The production task keys are
+/// read-only here. Probe writes use an isolated key so this discovery code
+/// cannot race with Flutter's whole-list persistence or alter user tasks.
 struct TsubusuTaskStorage {
   static let lastActiveListIDKey = "flutter.last_active_list_id"
   static let todosListKeyPrefix = "flutter.todos_list_"
-  static let probeTaskText = "[App Intents probe] storage write verification"
+  static let probeRecordKey = "flutter.app_intents_storage_probe"
 
   private let defaults: UserDefaults
 
@@ -72,92 +78,25 @@ struct TsubusuTaskStorage {
   }
 
   @discardableResult
-  func appendProbeTask() throws -> TsubusuStoredTodo {
+  func writeProbeRecord(id: String = UUID().uuidString) throws -> TsubusuStorageProbeRecord {
     let snapshot = try loadActiveSnapshot()
-    let task = TsubusuStoredTodo(
-      id: String(Int(Date().timeIntervalSince1970 * 1_000_000)),
-      text: Self.probeTaskText,
-      isCompleted: false,
-      parentId: nil
+    let record = TsubusuStorageProbeRecord(
+      id: id,
+      observedListID: snapshot.listID,
+      observedTaskCount: snapshot.todos.count
     )
-    try save(snapshot.todos + [task], toListID: snapshot.listID)
-    return task
-  }
 
-  @discardableResult
-  func removeProbeTasks() throws -> Int {
-    let snapshot = try loadActiveSnapshot()
-    let remaining = snapshot.todos.filter { $0.text != Self.probeTaskText }
-    let removedCount = snapshot.todos.count - remaining.count
-    if removedCount > 0 {
-      try save(remaining, toListID: snapshot.listID)
-    }
-    return removedCount
-  }
-
-  private func save(_ todos: [TsubusuStoredTodo], toListID listID: String) throws {
     do {
-      let data = try JSONEncoder().encode(todos)
-      guard let encodedTodos = String(data: data, encoding: .utf8) else {
-        throw TsubusuTaskStorageError.invalidTaskData("The encoded value is not UTF-8.")
+      let data = try JSONEncoder().encode(record)
+      guard let encodedRecord = String(data: data, encoding: .utf8) else {
+        throw TsubusuTaskStorageError.invalidTaskData("The probe record is not UTF-8.")
       }
-      defaults.set(encodedTodos, forKey: Self.todosListKeyPrefix + listID)
+      defaults.set(encodedRecord, forKey: Self.probeRecordKey)
+      return record
     } catch let error as TsubusuTaskStorageError {
       throw error
     } catch {
       throw TsubusuTaskStorageError.invalidTaskData(error.localizedDescription)
     }
-  }
-}
-
-@available(iOS 16.0, *)
-struct TsubusuReadTaskStorageIntent: AppIntent {
-  static var title: LocalizedStringResource = "Read Tsubusu task storage"
-  static var openAppWhenRun = false
-
-  func perform() async throws -> some IntentResult & ReturnsValue<String> {
-    let snapshot = try TsubusuTaskStorage().loadActiveSnapshot()
-    let result = "Active list \(snapshot.listID) contains \(snapshot.todos.count) tasks."
-    return .result(value: result)
-  }
-}
-
-@available(iOS 16.0, *)
-struct TsubusuWriteTaskStorageProbeIntent: AppIntent {
-  static var title: LocalizedStringResource = "Write a Tsubusu storage probe"
-  static var openAppWhenRun = false
-
-  func perform() async throws -> some IntentResult & ReturnsValue<String> {
-    let task = try TsubusuTaskStorage().appendProbeTask()
-    return .result(value: "Added the probe task with ID \(task.id).")
-  }
-}
-
-@available(iOS 16.0, *)
-struct TsubusuRemoveTaskStorageProbeIntent: AppIntent {
-  static var title: LocalizedStringResource = "Remove Tsubusu storage probes"
-  static var openAppWhenRun = false
-
-  func perform() async throws -> some IntentResult & ReturnsValue<String> {
-    let removedCount = try TsubusuTaskStorage().removeProbeTasks()
-    return .result(value: "Removed \(removedCount) probe task(s).")
-  }
-}
-
-@available(iOS 16.0, *)
-struct TsubusuAppShortcuts: AppShortcutsProvider {
-  static var appShortcuts: [AppShortcut] {
-    AppShortcut(
-      intent: TsubusuReadTaskStorageIntent(),
-      phrases: ["Read task storage in \(.applicationName)"]
-    )
-    AppShortcut(
-      intent: TsubusuWriteTaskStorageProbeIntent(),
-      phrases: ["Write a storage probe in \(.applicationName)"]
-    )
-    AppShortcut(
-      intent: TsubusuRemoveTaskStorageProbeIntent(),
-      phrases: ["Remove storage probes in \(.applicationName)"]
-    )
   }
 }
