@@ -21,7 +21,7 @@ class TodoPage extends StatefulWidget {
   State<TodoPage> createState() => _TodoPageState();
 }
 
-class _TodoPageState extends State<TodoPage> {
+class _TodoPageState extends State<TodoPage> with WidgetsBindingObserver {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   TodoListService? _todoService;
@@ -33,7 +33,15 @@ class _TodoPageState extends State<TodoPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeWindow();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _isInitialized) {
+      _todoService?.refresh();
+    }
   }
 
   Future<void> _initializeWindow() async {
@@ -109,6 +117,7 @@ class _TodoPageState extends State<TodoPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _removeFromOpenWindows();
     _controller.dispose();
     _focusNode.dispose();
