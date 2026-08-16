@@ -72,10 +72,14 @@ class _TodoPageState extends State<TodoPage> with WidgetsBindingObserver {
     _listId = selectedList.id;
     _windowTitle = selectedList.title;
 
+    // The main window is the active-list source for both Flutter and native
+    // App Intents. iOS has no desktop window-management branch, so this must
+    // also run during a normal mobile launch.
+    if (widget.windowController == null) {
+      await _catalog.markListActive(_listId!);
+    }
+
     if (WindowManager.supportsWindowManagement) {
-      if (widget.windowController == null) {
-        await _catalog.markListActive(_listId!);
-      }
       await WindowRegistryService.registerOpenList(_listId!.value);
       if (widget.windowController != null) {
         await widget.windowController!.setFrameAutosaveName(

@@ -42,10 +42,13 @@ struct TsubusuListTasksIntent: AppIntent {
 
   func perform() async throws -> some IntentResult & ProvidesDialog & ReturnsValue<String> {
     let snapshot = try TsubusuTaskStorage().loadActiveSnapshot()
-    let result = snapshot.todos.isEmpty
+    let details = snapshot.todos.isEmpty
       ? "The active task list is empty."
       : snapshot.todos.map { "\($0.isCompleted ? "Completed" : "Open"): \($0.text) [\($0.id)]" }.joined(separator: "\n")
-    return .result(value: result, dialog: IntentDialog(stringLiteral: result))
+    let dialog = snapshot.todos.isEmpty
+      ? "The active task list is empty."
+      : "The active list contains \(snapshot.todos.count) tasks."
+    return .result(value: details, dialog: IntentDialog(stringLiteral: dialog))
   }
 }
 

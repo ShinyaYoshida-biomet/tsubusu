@@ -99,6 +99,24 @@ class RunnerTests: XCTestCase {
     XCTAssertEqual(snapshot.todos.first(where: { $0.id == "new-task" })?.isCompleted, false)
   }
 
+  func testCrudPreservesUnknownTaskFields() throws {
+    let taskKey = TsubusuTaskStorage.todosListKeyPrefix + "list-1"
+    defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
+    defaults.set(
+      #"[{"id":"task-1","text":"Example task","isCompleted":false,"futureField":"keep-me"}]"#,
+      forKey: taskKey
+    )
+
+    try TsubusuTaskStorage(defaults: defaults).completeTask(matching: "task-1")
+
+    let saved = try XCTUnwrap(defaults.string(forKey: taskKey))
+    let objects = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: try XCTUnwrap(saved.data(using: .utf8))) as? [[String: Any]]
+    )
+    XCTAssertEqual(objects.first?["futureField"] as? String, "keep-me")
+    XCTAssertEqual(objects.first?["isCompleted"] as? Bool, true)
+  }
+
   func testDeleteTaskRemovesDescendantsAndRejectsAmbiguousText() throws {
     defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
     defaults.set(

@@ -1,16 +1,63 @@
 import Foundation
 
 /// The JSON contract currently written by the Flutter Todo model.
-struct TsubusuStoredTodo: Codable, Equatable {
+struct TsubusuStoredTodo: Equatable {
   var id: String
   var text: String
   var isCompleted: Bool
   var parentId: String?
+
+  // Keep fields added by a newer Flutter model intact when an older native
+  // intent reads and writes the task array.
+  private var originalFields: [String: Any]
+
+  init(id: String, text: String, isCompleted: Bool, parentId: String?) {
+    self.id = id
+    self.text = text
+    self.isCompleted = isCompleted
+    self.parentId = parentId
+    self.originalFields = [:]
+  }
+
+  init(jsonObject: [String: Any]) throws {
+    guard let id = jsonObject["id"] as? String,
+          let text = jsonObject["text"] as? String,
+          let isCompleted = jsonObject["isCompleted"] as? Bool else {
+      throw TsubusuTaskStorageError.invalidTaskData("A task is missing id, text, or isCompleted.")
+    }
+
+    self.id = id
+    self.text = text
+    self.isCompleted = isCompleted
+    self.parentId = (jsonObject["parentId"] as? String)
+    self.originalFields = jsonObject
+  }
+
+  func jsonObject() -> [String: Any] {
+    var object = originalFields
+    object["id"] = id
+    object["text"] = text
+    object["isCompleted"] = isCompleted
+    object["parentId"] = parentId ?? NSNull()
+    return object
+  }
+
+  static func == (lhs: TsubusuStoredTodo, rhs: TsubusuStoredTodo) -> Bool {
+    lhs.id == rhs.id && lhs.text == rhs.text &&
+      lhs.isCompleted == rhs.isCompleted && lhs.parentId == rhs.parentId
+  }
 }
 
 struct TsubusuTaskStorageSnapshot: Equatable {
   let listID: String
   var todos: [TsubusuStoredTodo]
+  let originalEncodedTodos: String?
+
+  init(listID: String, todos: [TsubusuStoredTodo], originalEncodedTodos: String? = nil) {
+    self.listID = listID
+    self.todos = todos
+    self.originalEncodedTodos = originalEncodedTodos
+  }
 }
 
 struct TsubusuStorageProbeRecord: Codable, Equatable {
@@ -26,6 +73,7 @@ enum TsubusuTaskStorageError: LocalizedError {
   case emptyTaskText
   case taskNotFound(String)
   case ambiguousTask(String, [String])
+  case storageChanged
 
   var errorDescription: String? {
     switch self {
@@ -41,6 +89,8 @@ enum TsubusuTaskStorageError: LocalizedError {
       return "No task matched \"\(query)\"."
     case .ambiguousTask(let query, let matches):
       return "More than one task matched \"\(query)\": \(matches.joined(separator: ", ")). Use a task ID."
+    case .storageChanged:
+      return "The task list changed while this operation was in progress. Try again."
     }
   }
 }
@@ -76,8 +126,15 @@ struct TsubusuTaskStorage {
     }
 
     do {
-      let todos = try JSONDecoder().decode([TsubusuStoredTodo].self, from: data)
-      return TsubusuTaskStorageSnapshot(listID: listID, todos: todos)
+      guard let objects = try JSONSerialization.jsonObject(with: data) as? [[String: Any]] else {
+        throw TsubusuTaskStorageError.invalidTaskData("The stored value is not a task array.")
+      }
+      let todos = try objects.map(TsubusuStoredTodo.init(jsonObject:))
+      return TsubusuTaskStorageSnapshot(
+        listID: listID,
+        todos: todos,
+        originalEncodedTodos: encodedTodos
+      )
     } catch {
       throw TsubusuTaskStorageError.invalidTaskData(error.localizedDescription)
     }
@@ -158,7 +215,15 @@ struct TsubusuTaskStorage {
   private func save(_ snapshot: TsubusuTaskStorageSnapshot) throws {
     let key = Self.todosListKeyPrefix + snapshot.listID
     do {
-      let data = try JSONEncoder().encode(snapshot.todos)
+      if let originalEncodedTodos = snapshot.originalEncodedTodos,
+         defaults.string(forKey: key) != originalEncodedTodos {
+        throw TsubusuTaskStorageError.storageChanged
+      }
+
+      let data = try JSONSerialization.data(
+        withJSONObject: snapshot.todos.map { $0.jsonObject() },
+        options: []
+      )
       guard let encodedTodos = String(data: data, encoding: .utf8) else {
         throw TsubusuTaskStorageError.invalidTaskData("The task data is not UTF-8.")
       }

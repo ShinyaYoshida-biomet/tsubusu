@@ -11,6 +11,7 @@ class SharedPreferencesTodoRepository implements TodoRepository {
   @override
   Future<List<Todo>> loadTodos(TodoListId listId) async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     final todosJson = prefs.getString(StorageKeys.todosForList(listId));
 
     if (todosJson == null) {
@@ -26,6 +27,7 @@ class SharedPreferencesTodoRepository implements TodoRepository {
   @override
   Future<void> saveTodos(TodoListId listId, List<Todo> todos) async {
     final prefs = await SharedPreferences.getInstance();
+    await prefs.reload();
     final todosJson = jsonEncode(todos.map((todo) => todo.toJson()).toList());
     await prefs.setString(StorageKeys.todosForList(listId), todosJson);
   }
