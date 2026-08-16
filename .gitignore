@@ -47,6 +47,7 @@ dmg_contents/
 # Flutter/Dart/Pub related
 **/doc/api/
 **/ios/Flutter/.last_build_id
+ios/Flutter/Debug.local.xcconfig
 .dart_tool/
 .flutter-plugins
 .flutter-plugins-dependencies
