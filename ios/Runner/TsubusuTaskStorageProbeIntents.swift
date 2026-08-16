@@ -1,7 +1,8 @@
 import AppIntents
 
-// The Runner target excludes this file from Profile and Release builds. These
-// shortcuts are diagnostics for the storage discovery only and must not ship.
+// These shortcuts are diagnostics for the storage discovery only. They are
+// included in Profile and Release builds temporarily so the spike can be
+// validated on a physical device without launching a Debug Flutter app.
 @available(iOS 16.0, *)
 struct TsubusuReadTaskStorageIntent: AppIntent {
   static var title: LocalizedStringResource = "Read Tsubusu task storage"
