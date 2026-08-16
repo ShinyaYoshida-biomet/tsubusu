@@ -21,7 +21,7 @@ class TodoPage extends StatefulWidget {
   State<TodoPage> createState() => _TodoPageState();
 }
 
-class _TodoPageState extends State<TodoPage> {
+class _TodoPageState extends State<TodoPage> with WidgetsBindingObserver {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
   TodoListService? _todoService;
@@ -33,7 +33,15 @@ class _TodoPageState extends State<TodoPage> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _initializeWindow();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && _isInitialized) {
+      _todoService?.refresh();
+    }
   }
 
   Future<void> _initializeWindow() async {
@@ -64,10 +72,14 @@ class _TodoPageState extends State<TodoPage> {
     _listId = selectedList.id;
     _windowTitle = selectedList.title;
 
+    // The main window is the active-list source for both Flutter and native
+    // App Intents. iOS has no desktop window-management branch, so this must
+    // also run during a normal mobile launch.
+    if (widget.windowController == null) {
+      await _catalog.markListActive(_listId!);
+    }
+
     if (WindowManager.supportsWindowManagement) {
-      if (widget.windowController == null) {
-        await _catalog.markListActive(_listId!);
-      }
       await WindowRegistryService.registerOpenList(_listId!.value);
       if (widget.windowController != null) {
         await widget.windowController!.setFrameAutosaveName(
@@ -109,6 +121,7 @@ class _TodoPageState extends State<TodoPage> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _removeFromOpenWindows();
     _controller.dispose();
     _focusNode.dispose();

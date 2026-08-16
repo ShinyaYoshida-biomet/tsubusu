@@ -45,6 +45,22 @@ class RunnerTests: XCTestCase {
     }
   }
 
+  func testLoadActiveSnapshotIncludesTheActiveListTitle() throws {
+    defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
+    defaults.set(
+      #"[{"id":"list-1","title":"Work"}]"#,
+      forKey: TsubusuTaskStorage.todoListCatalogKey
+    )
+    defaults.set(
+      #"[{"id":"task-1","text":"Example task","isCompleted":false}]"#,
+      forKey: TsubusuTaskStorage.todosListKeyPrefix + "list-1"
+    )
+
+    let snapshot = try TsubusuTaskStorage(defaults: defaults).loadActiveSnapshot()
+
+    XCTAssertEqual(snapshot.listTitle, "Work")
+  }
+
   func testLoadActiveSnapshotRejectsInvalidJSON() {
     defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
     defaults.set("not-json", forKey: TsubusuTaskStorage.todosListKeyPrefix + "list-1")
@@ -76,5 +92,63 @@ class RunnerTests: XCTestCase {
       from: try XCTUnwrap(encodedProbe.data(using: .utf8))
     )
     XCTAssertEqual(decodedProbe, record)
+  }
+
+  func testAddAndCompleteTaskWritesTheActiveList() throws {
+    let taskKey = TsubusuTaskStorage.todosListKeyPrefix + "list-1"
+    defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
+    defaults.set(
+      #"[{"id":"parent","text":"Parent","isCompleted":false,"parentId":null},{"id":"child","text":"Child","isCompleted":false,"parentId":"parent"}]"#,
+      forKey: taskKey
+    )
+
+    let storage = TsubusuTaskStorage(defaults: defaults)
+    let added = try storage.addTask(text: "  New task  ", id: "new-task")
+    XCTAssertEqual(added, TsubusuStoredTodo(id: "new-task", text: "New task", isCompleted: false, parentId: nil))
+
+    let completed = try storage.completeTask(matching: "parent")
+    XCTAssertEqual(completed.id, "parent")
+
+    let snapshot = try storage.loadActiveSnapshot()
+    XCTAssertEqual(snapshot.todos.first(where: { $0.id == "parent" })?.isCompleted, true)
+    XCTAssertEqual(snapshot.todos.first(where: { $0.id == "child" })?.isCompleted, true)
+    XCTAssertEqual(snapshot.todos.first(where: { $0.id == "new-task" })?.isCompleted, false)
+  }
+
+  func testCrudPreservesUnknownTaskFields() throws {
+    let taskKey = TsubusuTaskStorage.todosListKeyPrefix + "list-1"
+    defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
+    defaults.set(
+      #"[{"id":"task-1","text":"Example task","isCompleted":false,"futureField":"keep-me"}]"#,
+      forKey: taskKey
+    )
+
+    try TsubusuTaskStorage(defaults: defaults).completeTask(matching: "task-1")
+
+    let saved = try XCTUnwrap(defaults.string(forKey: taskKey))
+    let objects = try XCTUnwrap(
+      JSONSerialization.jsonObject(with: try XCTUnwrap(saved.data(using: .utf8))) as? [[String: Any]]
+    )
+    XCTAssertEqual(objects.first?["futureField"] as? String, "keep-me")
+    XCTAssertEqual(objects.first?["isCompleted"] as? Bool, true)
+  }
+
+  func testDeleteTaskRemovesDescendantsAndRejectsAmbiguousText() throws {
+    defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
+    defaults.set(
+      #"[{"id":"parent","text":"Parent","isCompleted":false,"parentId":null},{"id":"child","text":"Child","isCompleted":false,"parentId":"parent"},{"id":"duplicate-1","text":"Same","isCompleted":false,"parentId":null},{"id":"duplicate-2","text":"Same","isCompleted":false,"parentId":null}]"#,
+      forKey: TsubusuTaskStorage.todosListKeyPrefix + "list-1"
+    )
+
+    let storage = TsubusuTaskStorage(defaults: defaults)
+    XCTAssertThrowsError(try storage.deleteTask(matching: "Same")) { error in
+      guard case TsubusuTaskStorageError.ambiguousTask = error else {
+        return XCTFail("Expected ambiguousTask, got \(error)")
+      }
+    }
+
+    let deleted = try storage.deleteTask(matching: "parent")
+    XCTAssertEqual(deleted.id, "parent")
+    XCTAssertEqual(try storage.loadActiveSnapshot().todos.map(\.id), ["duplicate-1", "duplicate-2"])
   }
 }
