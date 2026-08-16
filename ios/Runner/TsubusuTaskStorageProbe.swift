@@ -50,11 +50,18 @@ struct TsubusuStoredTodo: Equatable {
 
 struct TsubusuTaskStorageSnapshot: Equatable {
   let listID: String
+  let listTitle: String?
   var todos: [TsubusuStoredTodo]
   let originalEncodedTodos: String?
 
-  init(listID: String, todos: [TsubusuStoredTodo], originalEncodedTodos: String? = nil) {
+  init(
+    listID: String,
+    todos: [TsubusuStoredTodo],
+    listTitle: String? = nil,
+    originalEncodedTodos: String? = nil
+  ) {
     self.listID = listID
+    self.listTitle = listTitle
     self.todos = todos
     self.originalEncodedTodos = originalEncodedTodos
   }
@@ -101,6 +108,7 @@ enum TsubusuTaskStorageError: LocalizedError {
 /// passing keys to shared_preferences_foundation.
 struct TsubusuTaskStorage {
   static let lastActiveListIDKey = "flutter.last_active_list_id"
+  static let todoListCatalogKey = "flutter.todo_list_catalog"
   static let todosListKeyPrefix = "flutter.todos_list_"
   static let probeRecordKey = "flutter.app_intents_storage_probe"
 
@@ -133,11 +141,25 @@ struct TsubusuTaskStorage {
       return TsubusuTaskStorageSnapshot(
         listID: listID,
         todos: todos,
+        listTitle: loadListTitle(for: listID),
         originalEncodedTodos: encodedTodos
       )
     } catch {
       throw TsubusuTaskStorageError.invalidTaskData(error.localizedDescription)
     }
+  }
+
+  private func loadListTitle(for listID: String) -> String? {
+    guard let encodedCatalog = defaults.string(forKey: Self.todoListCatalogKey),
+          let data = encodedCatalog.data(using: .utf8),
+          let records = try? JSONSerialization.jsonObject(with: data) as? [[String: Any]],
+          let record = records.first(where: { $0["id"] as? String == listID }),
+          let title = record["title"] as? String else {
+      return nil
+    }
+
+    let normalizedTitle = title.trimmingCharacters(in: .whitespacesAndNewlines)
+    return normalizedTitle.isEmpty ? nil : normalizedTitle
   }
 
   func addTask(text: String, id: String = UUID().uuidString) throws -> TsubusuStoredTodo {

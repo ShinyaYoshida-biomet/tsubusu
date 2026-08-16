@@ -45,6 +45,22 @@ class RunnerTests: XCTestCase {
     }
   }
 
+  func testLoadActiveSnapshotIncludesTheActiveListTitle() throws {
+    defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
+    defaults.set(
+      #"[{"id":"list-1","title":"Work"}]"#,
+      forKey: TsubusuTaskStorage.todoListCatalogKey
+    )
+    defaults.set(
+      #"[{"id":"task-1","text":"Example task","isCompleted":false}]"#,
+      forKey: TsubusuTaskStorage.todosListKeyPrefix + "list-1"
+    )
+
+    let snapshot = try TsubusuTaskStorage(defaults: defaults).loadActiveSnapshot()
+
+    XCTAssertEqual(snapshot.listTitle, "Work")
+  }
+
   func testLoadActiveSnapshotRejectsInvalidJSON() {
     defaults.set("list-1", forKey: TsubusuTaskStorage.lastActiveListIDKey)
     defaults.set("not-json", forKey: TsubusuTaskStorage.todosListKeyPrefix + "list-1")

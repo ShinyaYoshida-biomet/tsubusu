@@ -6,7 +6,8 @@ struct TsubusuReadTaskStorageIntent: AppIntent {
 
   func perform() async throws -> some IntentResult & ProvidesDialog & ReturnsValue<String> {
     let snapshot = try TsubusuTaskStorage().loadActiveSnapshot()
-    let result = "The active list contains \(snapshot.todos.count) tasks."
+    let listDescription = snapshot.listTitle.map { "\"\($0)\"" } ?? "the active list"
+    let result = "The active list \(listDescription) contains \(snapshot.todos.count) tasks."
     return .result(value: result, dialog: IntentDialog(stringLiteral: result))
   }
 }
@@ -42,12 +43,13 @@ struct TsubusuListTasksIntent: AppIntent {
 
   func perform() async throws -> some IntentResult & ProvidesDialog & ReturnsValue<String> {
     let snapshot = try TsubusuTaskStorage().loadActiveSnapshot()
+    let listDescription = snapshot.listTitle.map { "\"\($0)\"" } ?? "the active list"
     let details = snapshot.todos.isEmpty
-      ? "The active task list is empty."
-      : snapshot.todos.map { "\($0.isCompleted ? "Completed" : "Open"): \($0.text) [\($0.id)]" }.joined(separator: "\n")
+      ? "List: \(listDescription)\nThe task list is empty."
+      : "List: \(listDescription)\n" + snapshot.todos.map { "\($0.isCompleted ? "Completed" : "Open"): \($0.text) [\($0.id)]" }.joined(separator: "\n")
     let dialog = snapshot.todos.isEmpty
-      ? "The active task list is empty."
-      : "The active list contains \(snapshot.todos.count) tasks."
+      ? "The task list \(listDescription) is empty."
+      : "The list \(listDescription) contains \(snapshot.todos.count) tasks."
     return .result(value: details, dialog: IntentDialog(stringLiteral: dialog))
   }
 }
