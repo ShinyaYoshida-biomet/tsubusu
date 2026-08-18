@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tsubusu — Minimalist, Offline-First Task Manager</title>
+  <meta name="description" content="Tsubusu (潰す) is a fast, delightful, privacy-first to-do list app for iOS, macOS, and Windows. Check off tasks with a satisfying crush & star burst animation.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a href="index.html" class="brand" id="brand-link">
+        <span class="brand-icon">✓</span>
+        <span>Tsubusu</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link active" id="nav-home">Home</a></li>
+          <li><a href="privacy.html" class="nav-link" id="nav-privacy">Privacy Policy</a></li>
+          <li><a href="support.html" class="nav-link" id="nav-support">Support</a></li>
+          <li>
+            <div class="lang-switch">
+              <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+              <button class="lang-btn" id="btn-ja" onclick="setLanguage('ja')">日本語</button>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <!-- English Content -->
+      <div class="lang-content-en">
+        <section class="hero">
+          <div class="badge">✨ Pure Focus & Satisfying Completion</div>
+          <h1 class="hero-title">Crush your tasks.<br>Celebrate the win.</h1>
+          <p class="hero-subtitle">
+            <strong>Tsubusu</strong> (from Japanese <em>潰す</em> — "to crush") turns completing everyday tasks into a micro-celebration. Watch the checkbox crush down and explode into stars with zero distractions.
+          </p>
+          <div class="hero-actions">
+            <a href="https://github.com/ShinyaYoshida-biomet/tsubusu" target="_blank" rel="noopener noreferrer" class="btn btn-primary" id="btn-github">
+              View on GitHub
+            </a>
+            <a href="support.html" class="btn btn-secondary" id="btn-support-link">
+              Support & FAQ
+            </a>
+          </div>
+        </section>
+
+        <!-- Interactive Demo -->
+        <div class="demo-card">
+          <div class="demo-header">
+            <span class="demo-title">🎯 Interactive Preview</span>
+            <span class="demo-instruction">Click a task to crush it!</span>
+          </div>
+          <div class="todo-list" id="todo-demo-list">
+            <div class="todo-item" onclick="toggleTask(this)">
+              <div class="todo-box-wrap">
+                <div class="todo-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="star-particles"></div>
+              </div>
+              <span class="todo-text">Complete the App Store submission</span>
+            </div>
+
+            <div class="todo-item" onclick="toggleTask(this)">
+              <div class="todo-box-wrap">
+                <div class="todo-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="star-particles"></div>
+              </div>
+              <span class="todo-text">Experience the satisfying crush animation</span>
+            </div>
+
+            <div class="todo-item" onclick="toggleTask(this)">
+              <div class="todo-box-wrap">
+                <div class="todo-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="star-particles"></div>
+              </div>
+              <span class="todo-text">Enjoy 100% offline and private task management</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="feature-grid">
+          <div class="feature-card">
+            <span class="feature-icon">💥</span>
+            <h3 class="feature-title">Satisfying Feedback</h3>
+            <p class="feature-desc">A tactile 5% height crushing effect followed by a sparkling star burst makes finishing to-dos deeply rewarding.</p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">🔒</span>
+            <h3 class="feature-title">100% Private & Offline</h3>
+            <p class="feature-desc">Zero telemetry, zero trackers, zero cloud accounts. Everything stays safely on your local device.</p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <h3 class="feature-title">Lightning Fast</h3>
+            <p class="feature-desc">Built with Flutter for instant startup, zero lag, and fluid 120 FPS animations on iOS and desktop.</p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">🎨</span>
+            <h3 class="feature-title">7 Curated Themes</h3>
+            <p class="feature-desc">Personalize your workspace with Forest, Ocean, Sunset, Lavender, Rose, Cherry, or Mint.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Japanese Content -->
+      <div class="lang-content-ja">
+        <section class="hero">
+          <div class="badge">✨ 集中と達成感のためのタスク管理</div>
+          <h1 class="hero-title">タスクを、潰す。<br>小さな達成感を、何度でも。</h1>
+          <p class="hero-subtitle">
+            <strong>Tsubusu（つぶす）</strong>は、完了したタスクのチェックボックスがギュッと潰れて星が弾け飛ぶ、ミニマルで心地よいToDoアプリです。余計な通知や同期に煩わされず、目の前の作業に集中できます。
+          </p>
+          <div class="hero-actions">
+            <a href="https://github.com/ShinyaYoshida-biomet/tsubusu" target="_blank" rel="noopener noreferrer" class="btn btn-primary">
+              GitHubで見る
+            </a>
+            <a href="support.html" class="btn btn-secondary">
+              サポート・お問い合わせ
+            </a>
+          </div>
+        </section>
+
+        <!-- Interactive Demo -->
+        <div class="demo-card">
+          <div class="demo-header">
+            <span class="demo-title">🎯 アニメーション体験</span>
+            <span class="demo-instruction">クリックしてタスクを潰してみてください</span>
+          </div>
+          <div class="todo-list" id="todo-demo-list-ja">
+            <div class="todo-item" onclick="toggleTask(this)">
+              <div class="todo-box-wrap">
+                <div class="todo-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="star-particles"></div>
+              </div>
+              <span class="todo-text">App Store提出準備を完了する</span>
+            </div>
+
+            <div class="todo-item" onclick="toggleTask(this)">
+              <div class="todo-box-wrap">
+                <div class="todo-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="star-particles"></div>
+              </div>
+              <span class="todo-text">チェックボックスが潰れる気持ちよさを味わう</span>
+            </div>
+
+            <div class="todo-item" onclick="toggleTask(this)">
+              <div class="todo-box-wrap">
+                <div class="todo-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div class="star-particles"></div>
+              </div>
+              <span class="todo-text">完全ローカル・プライバシー重視で作業する</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Features Grid -->
+        <div class="feature-grid">
+          <div class="feature-card">
+            <span class="feature-icon">💥</span>
+            <h3 class="feature-title">潰れるアニメーション</h3>
+            <p class="feature-desc">高さ5%までペシャンコに潰れてから星が弾けるアニメーションが、毎回のタスク完了に確かな爽快感を与えます。</p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">🔒</span>
+            <h3 class="feature-title">完全ローカル・通信なし</h3>
+            <p class="feature-desc">サーバー通信・ユーザー追跡・広告SDKは一切不使用。データはすべて端末内に安全に保持されます。</p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">⚡</span>
+            <h3 class="feature-title">超軽量・軽快な動作</h3>
+            <p class="feature-desc">Flutterによるネイティブレンダリングで、起動も動作も一瞬。ストレスなくタスクを管理できます。</p>
+          </div>
+
+          <div class="feature-card">
+            <span class="feature-icon">🎨</span>
+            <h3 class="feature-title">7色のカラーテーマ</h3>
+            <p class="feature-desc">Forest、Ocean、Sunset、Lavender、Rose、Cherry、Mintから、気分に合わせたテーマを選べます。</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; 2026 Shinya Yoshida. All rights reserved.</p>
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="support.html">Support</a></li>
+        <li><a href="https://github.com/ShinyaYoshida-biomet/tsubusu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script>
+    function setLanguage(lang) {
+      if (lang === 'ja') {
+        document.body.classList.add('lang-ja');
+        document.getElementById('btn-ja').classList.add('active');
+        document.getElementById('btn-en').classList.remove('active');
+        document.documentElement.lang = 'ja';
+        localStorage.setItem('tsubusu_lang', 'ja');
+      } else {
+        document.body.classList.remove('lang-ja');
+        document.getElementById('btn-en').classList.add('active');
+        document.getElementById('btn-ja').classList.remove('active');
+        document.documentElement.lang = 'en';
+        localStorage.setItem('tsubusu_lang', 'en');
+      }
+    }
+
+    function toggleTask(item) {
+      const isCompleted = item.classList.contains('completed');
+      const particles = item.querySelector('.star-particles');
+      
+      if (!isCompleted) {
+        // Create star explosion
+        particles.innerHTML = '';
+        const starCount = 8;
+        for (let i = 0; i < starCount; i++) {
+          const star = document.createElement('div');
+          star.className = 'star-particle';
+          const angle = (i / starCount) * 2 * Math.PI;
+          const distance = 28 + Math.random() * 8;
+          const tx = Math.cos(angle) * distance + 'px';
+          const ty = Math.sin(angle) * distance + 'px';
+          star.style.setProperty('--tx', tx);
+          star.style.setProperty('--ty', ty);
+          particles.appendChild(star);
+        }
+        
+        particles.classList.remove('animate');
+        void particles.offsetWidth; // Trigger reflow
+        particles.classList.add('animate');
+        
+        item.classList.add('completed');
+      } else {
+        item.classList.remove('completed');
+        particles.classList.remove('animate');
+        particles.innerHTML = '';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('tsubusu_lang');
+      if (savedLang) {
+        setLanguage(savedLang);
+      } else if (navigator.language && navigator.language.startsWith('ja')) {
+        setLanguage('ja');
+      }
+    });
+  </script>
+</body>
+</html>
