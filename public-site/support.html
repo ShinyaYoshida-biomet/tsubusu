@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Support & FAQ — Tsubusu</title>
+  <meta name="description" content="Official Support and FAQ page for Tsubusu - Get help, submit feedback, or contact developer Shinya Yoshida.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a href="index.html" class="brand" id="brand-link">
+        <span class="brand-icon">✓</span>
+        <span>Tsubusu</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="index.html" class="nav-link" id="nav-home">Home</a></li>
+          <li><a href="privacy.html" class="nav-link" id="nav-privacy">Privacy Policy</a></li>
+          <li><a href="support.html" class="nav-link active" id="nav-support">Support</a></li>
+          <li>
+            <div class="lang-switch">
+              <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+              <button class="lang-btn" id="btn-ja" onclick="setLanguage('ja')">日本語</button>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <!-- English Content -->
+      <div class="lang-content-en">
+        <div class="page-header">
+          <div class="badge">Support & Help Center</div>
+          <h1 class="page-title">Tsubusu App Support</h1>
+          <p class="page-meta">Need help, have questions, or want to suggest an improvement? We're here to help.</p>
+        </div>
+
+        <div class="content-card">
+          <h2 class="section-title">About Tsubusu</h2>
+          <p class="content-text">
+            <strong>Tsubusu</strong> (from the Japanese word <em>潰す</em>, meaning "to crush") is a distraction-free, privacy-first to-do list application for iOS, macOS, and Windows. When you finish a task, the checkbox smoothly crushes down to 5% height before exploding into a shower of stars — giving you an instant sense of tactile accomplishment for every completed goal.
+          </p>
+        </div>
+
+        <div class="content-card">
+          <h2 class="section-title">Contact & Support Channels</h2>
+          <p class="content-text">
+            We actively monitor both GitHub Issues and direct email inquiries. Please reach out through whichever method is most convenient for you:
+          </p>
+
+          <div class="contact-grid">
+            <div class="contact-card">
+              <span class="contact-card-title">GitHub Issue Tracker</span>
+              <span class="contact-card-value">
+                <a href="https://github.com/ShinyaYoshida-biomet/tsubusu/issues" target="_blank" rel="noopener noreferrer">
+                  Submit an Issue on GitHub →
+                </a>
+              </span>
+              <p class="feature-desc" style="margin-top: 0.25rem;">Best for public bug reports, technical discussions, and feature suggestions.</p>
+            </div>
+
+            <div class="contact-card">
+              <span class="contact-card-title">Direct Email Support</span>
+              <span class="contact-card-value">
+                <a href="mailto:kiyasdnbysg@icloud.com">kiyasdnbysg@icloud.com</a>
+              </span>
+              <p class="feature-desc" style="margin-top: 0.25rem;">Contact developer Shinya Yoshida directly for app inquiries, support, or private feedback.</p>
+            </div>
+
+            <div class="contact-card">
+              <span class="contact-card-title">App Developer</span>
+              <span class="contact-card-value">Shinya Yoshida</span>
+              <p class="feature-desc" style="margin-top: 0.25rem;">Independent Developer & Creator of Tsubusu.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h2 class="section-title">Frequently Asked Questions (FAQ)</h2>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>Where are my tasks and lists stored?</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              All your tasks, completed items, and custom settings are stored 100% locally on your device in secure local application storage. No information is ever uploaded to any cloud server or third-party service.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>Does Tsubusu require an internet connection?</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              No. Tsubusu is completely offline-first. You can create, organize, and crush tasks without an active internet connection, anywhere at any time.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>What platforms are supported?</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              Tsubusu is built with Flutter and supports Apple iOS (iPhone/iPad), macOS, and Windows with native performance and desktop multi-window capabilities.
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>How do I switch color themes?</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              Open the settings menu within the app to choose from 7 handcrafted color themes: Forest (Default Teal), Ocean (Blue), Sunset (Orange), Lavender (Purple), Rose (Pink), Cherry (Red), and Mint (Green).
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>How do I delete or reorder tasks?</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              You can drag and drop tasks to reorder them or nest subtasks. Simply swipe or use the delete button to remove completed or unwanted tasks.
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Japanese Content -->
+      <div class="lang-content-ja">
+        <div class="page-header">
+          <div class="badge">サポート＆ヘルプセンター</div>
+          <h1 class="page-title">Tsubusu アプリサポート</h1>
+          <p class="page-meta">アプリの使い方、不具合のご報告、機能のご要望などはお気軽にお寄せください。</p>
+        </div>
+
+        <div class="content-card">
+          <h2 class="section-title">Tsubusu（つぶす）について</h2>
+          <p class="content-text">
+            <strong>Tsubusu</strong>は、「タスクを潰す」という言葉から名付けられた、シンプルで心地よいタスク管理アプリです（iOS / macOS / Windows対応）。タスクを完了すると、チェックボックスが高さ5%までギュッと潰れてから星が弾け飛ぶアニメーションが再生され、毎日のタスク消化に小さく確かな達成感をもたらします。
+          </p>
+        </div>
+
+        <div class="content-card">
+          <h2 class="section-title">お問い合わせ窓口</h2>
+          <p class="content-text">
+            以下のいずれかの方法でお気軽にご連絡ください：
+          </p>
+
+          <div class="contact-grid">
+            <div class="contact-card">
+              <span class="contact-card-title">GitHub Issues（推奨）</span>
+              <span class="contact-card-value">
+                <a href="https://github.com/ShinyaYoshida-biomet/tsubusu/issues" target="_blank" rel="noopener noreferrer">
+                  GitHubでIssueを作成する →
+                </a>
+              </span>
+              <p class="feature-desc" style="margin-top: 0.25rem;">バグ報告や新機能のご提案、改善要望はこちらから受け付けています。</p>
+            </div>
+
+            <div class="contact-card">
+              <span class="contact-card-title">メールでのお問い合わせ</span>
+              <span class="contact-card-value">
+                <a href="mailto:kiyasdnbysg@icloud.com">kiyasdnbysg@icloud.com</a>
+              </span>
+              <p class="feature-desc" style="margin-top: 0.25rem;">開発者（吉田 真也）へ直接メールでお問い合わせいただけます。</p>
+            </div>
+
+            <div class="contact-card">
+              <span class="contact-card-title">開発者</span>
+              <span class="contact-card-value">Shinya Yoshida（吉田 真也）</span>
+              <p class="feature-desc" style="margin-top: 0.25rem;">個人開発者 / Tsubusu 開発・運営</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h2 class="section-title">よくある質問（FAQ）</h2>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>タスクデータはどこに保存されますか？</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              作成したすべてのタスクやリスト、完了状態、テーマ設定はお手元の端末内のローカルストレージ（SharedPreferences）に安全に保存されます。外部サーバーへの送信や保存は一切行われません。
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>オフラインでも利用できますか？</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              はい、完全オフラインで動作します。機内モードや電波の届かない環境でも、すべての機能を制限なくご利用いただけます。
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>対応プラットフォームは何ですか？</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              Flutter製で、Apple iOS（iPhone / iPad）、macOS、Windowsに対応しています。デスクトップではマルチウィンドウ表示にも対応しています。
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>テーマカラーは変更できますか？</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              はい。アプリ内の設定から「Forest (Green)」「Ocean (Blue)」「Sunset (Orange)」「Lavender (Purple)」「Rose (Pink)」「Cherry (Red)」「Mint (Green)」の7色からお好みのテーマを選択できます。
+            </div>
+          </div>
+
+          <div class="faq-item">
+            <div class="faq-question" onclick="toggleFaq(this)">
+              <span>不具合や要望を報告するにはどうすればいいですか？</span>
+              <span>▾</span>
+            </div>
+            <div class="faq-answer">
+              GitHub Issues（https://github.com/ShinyaYoshida-biomet/tsubusu/issues）に投稿いただくか、開発者のメールアドレス（kiyasdnbysg@icloud.com）までお気軽にお送りください。
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; 2026 Shinya Yoshida. All rights reserved.</p>
+      <ul class="footer-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="support.html">Support</a></li>
+        <li><a href="https://github.com/ShinyaYoshida-biomet/tsubusu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script>
+    function setLanguage(lang) {
+      if (lang === 'ja') {
+        document.body.classList.add('lang-ja');
+        document.getElementById('btn-ja').classList.add('active');
+        document.getElementById('btn-en').classList.remove('active');
+        document.documentElement.lang = 'ja';
+        localStorage.setItem('tsubusu_lang', 'ja');
+      } else {
+        document.body.classList.remove('lang-ja');
+        document.getElementById('btn-en').classList.add('active');
+        document.getElementById('btn-ja').classList.remove('active');
+        document.documentElement.lang = 'en';
+        localStorage.setItem('tsubusu_lang', 'en');
+      }
+    }
+
+    function toggleFaq(el) {
+      const answer = el.nextElementSibling;
+      const arrow = el.querySelector('span:last-child');
+      if (answer.style.display === 'none') {
+        answer.style.display = 'block';
+        arrow.textContent = '▴';
+      } else {
+        answer.style.display = 'none';
+        arrow.textContent = '▾';
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('tsubusu_lang');
+      if (savedLang) {
+        setLanguage(savedLang);
+      } else if (navigator.language && navigator.language.startsWith('ja')) {
+        setLanguage('ja');
+      }
+    });
+  </script>
+</body>
+</html>

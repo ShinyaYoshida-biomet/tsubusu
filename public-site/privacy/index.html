@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Tsubusu</title>
+  <meta name="description" content="Privacy Policy for Tsubusu - A minimal, privacy-first task management application that collects no user data and runs 100% locally.">
+  <link rel="stylesheet" href="../style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+</head>
+<body>
+  <header class="site-header">
+    <div class="container nav-bar">
+      <a href="../index.html" class="brand" id="brand-link">
+        <span class="brand-icon">✓</span>
+        <span>Tsubusu</span>
+      </a>
+      <nav>
+        <ul class="nav-links">
+          <li><a href="../index.html" class="nav-link" id="nav-home">Home</a></li>
+          <li><a href="../privacy/" class="nav-link active" id="nav-privacy">Privacy Policy</a></li>
+          <li><a href="../support/" class="nav-link" id="nav-support">Support</a></li>
+          <li>
+            <div class="lang-switch">
+              <button class="lang-btn active" id="btn-en" onclick="setLanguage('en')">EN</button>
+              <button class="lang-btn" id="btn-ja" onclick="setLanguage('ja')">日本語</button>
+            </div>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <!-- English Content -->
+      <div class="lang-content-en">
+        <div class="page-header">
+          <div class="badge">Privacy Policy</div>
+          <h1 class="page-title">Privacy Policy for Tsubusu</h1>
+          <p class="page-meta">Last Updated & Effective Date: August 18, 2026</p>
+        </div>
+
+        <div class="content-card">
+          <div class="highlight-box">
+            <h3>Summary of Our Privacy Commitment</h3>
+            <p><strong>Tsubusu does not collect, store, transmit, or share any personal information, usage metrics, or analytics.</strong> All your data stays 100% offline on your own device.</p>
+          </div>
+
+          <h2 class="section-title">1. Introduction</h2>
+          <p class="content-text">
+            Tsubusu ("the App", "we", "our") is a minimalist task management application designed for iOS, macOS, and Windows. We believe your daily tasks and to-dos are personal. Therefore, Tsubusu has been designed from day one with a strict <strong>offline-first, zero-data-collection philosophy</strong>.
+          </p>
+
+          <h2 class="section-title">2. Information We Collect</h2>
+          <p class="content-text">
+            <strong>We do not collect any personal data or usage information.</strong>
+          </p>
+          <ul class="content-text" style="padding-left: 1.5rem; margin-bottom: 1.25rem;">
+            <li><strong>No Personal Identifiers:</strong> We do not ask for, collect, or store names, email addresses, phone numbers, location data, or device identifiers.</li>
+            <li><strong>No Account Required:</strong> You do not need to create an account or sign in with any service to use Tsubusu.</li>
+            <li><strong>No Analytics or Tracking:</strong> There are no third-party tracking, analytics, or behavioral monitoring SDKs embedded in the App.</li>
+            <li><strong>No Advertising SDKs:</strong> Tsubusu is completely ad-free. No advertising frameworks are integrated.</li>
+          </ul>
+
+          <h2 class="section-title">3. Data Storage & Local Architecture</h2>
+          <p class="content-text">
+            All your tasks, to-do lists, completion states, and appearance preferences (such as selected color themes) are stored purely locally on your device via secure on-device storage (using standard local key-value storage).
+          </p>
+          <p class="content-text">
+            Your data is never transmitted to any remote server or third-party cloud infrastructure. If you delete the App or its local data, your task data is deleted from your device.
+          </p>
+
+          <h2 class="section-title">4. Third-Party Libraries & Dependencies</h2>
+          <p class="content-text">
+            For maximum security and transparency, Tsubusu relies exclusively on the following minimal open-source packages:
+          </p>
+          <ul class="content-text" style="padding-left: 1.5rem; margin-bottom: 1.25rem;">
+            <li><code>shared_preferences</code> — Used solely to read and write task lists and theme settings to local device storage.</li>
+            <li><code>provider</code> — Used for in-memory reactive state management across the UI.</li>
+            <li><code>desktop_multi_window</code> — Used for window management on desktop platforms.</li>
+          </ul>
+          <p class="content-text">
+            None of these packages communicate over the internet or transmit telemetry. The App performs zero network requests.
+          </p>
+
+          <h2 class="section-title">5. Children's Privacy</h2>
+          <p class="content-text">
+            Because Tsubusu does not collect any personal information whatsoever, it does not knowingly collect information from children under the age of 13 (or any other age). Tsubusu is safe for users of all ages and is rated 4+ on the Apple App Store.
+          </p>
+
+          <h2 class="section-title">6. Changes to this Policy</h2>
+          <p class="content-text">
+            We may update our Privacy Policy from time to time. Any changes will be posted on this page with an updated effective date. However, our core principle will remain unchanged: your data belongs to you and stays on your device.
+          </p>
+
+          <h2 class="section-title">7. Contact Us</h2>
+          <p class="content-text">
+            If you have any questions, suggestions, or concerns regarding this Privacy Policy, please feel free to reach out directly:
+          </p>
+
+          <div class="contact-grid">
+            <div class="contact-card">
+              <span class="contact-card-title">Developer</span>
+              <span class="contact-card-value">Shinya Yoshida</span>
+            </div>
+            <div class="contact-card">
+              <span class="contact-card-title">Email Contact</span>
+              <span class="contact-card-value"><a href="mailto:kiyasdnbysg@icloud.com">kiyasdnbysg@icloud.com</a></span>
+            </div>
+            <div class="contact-card">
+              <span class="contact-card-title">GitHub Repository</span>
+              <span class="contact-card-value"><a href="https://github.com/ShinyaYoshida-biomet/tsubusu" target="_blank" rel="noopener noreferrer">ShinyaYoshida-biomet/tsubusu</a></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Japanese Content -->
+      <div class="lang-content-ja">
+        <div class="page-header">
+          <div class="badge">プライバシーポリシー</div>
+          <h1 class="page-title">Tsubusu プライバシーポリシー</h1>
+          <p class="page-meta">制定日・最終改定日: 2026年8月18日</p>
+        </div>
+
+        <div class="content-card">
+          <div class="highlight-box">
+            <h3>プライバシーに関する基本方針</h3>
+            <p><strong>本アプリ「Tsubusu」は、ユーザーの個人情報、利用状況データ、端末情報を一切収集・保存・送信しません。</strong>すべてのデータはお手元の端末内にのみ保存され、完全ローカルで動作します。</p>
+          </div>
+
+          <h2 class="section-title">1. はじめに</h2>
+          <p class="content-text">
+            Tsubusu（以下「本アプリ」）は、シンプルで心地よいタスク管理を提供するiOS / macOS / Windows向けアプリケーションです。本アプリは設計段階から「完全ローカル動作・プライバシー最優先」を徹底しており、ユーザーのプライバシーを尊重します。
+          </p>
+
+          <h2 class="section-title">2. 収集する情報とその利用</h2>
+          <p class="content-text">
+            <strong>本アプリはユーザーのいかなるデータも収集・送信いたしません。</strong>
+          </p>
+          <ul class="content-text" style="padding-left: 1.5rem; margin-bottom: 1.25rem;">
+            <li><strong>個人情報の非収集:</strong> 氏名、メールアドレス、電話番号、位置情報、端末識別子などは一切取得・保存いたしません。</li>
+            <li><strong>アカウント登録不要:</strong> アカウント登録やログインなしですぐにご利用いただけます。</li>
+            <li><strong>アクセス解析・トラッキングの排除:</strong> 利用状況を分析するSDKや行動トラッキングツールは一切組み込まれていません。</li>
+            <li><strong>広告SDKの非搭載:</strong> 本アプリ内には広告表示用のSDKは一切含まれていません。</li>
+          </ul>
+
+          <h2 class="section-title">3. データの保存場所と管理</h2>
+          <p class="content-text">
+            作成されたタスク、リスト、完了状態、選択されたテーマなどの設定情報は、すべて端末内のローカルストレージ（SharedPreferences）にのみ保存されます。
+          </p>
+          <p class="content-text">
+            これらのデータが外部サーバーやクラウドに送信されることはありません。アプリを削除すると、端末内に保存されたタスクデータも同時に削除されます。
+          </p>
+
+          <h2 class="section-title">4. 利用しているサードパーティ製ライブラリ</h2>
+          <p class="content-text">
+            安全性の担保と透明性のため、本アプリが使用している外部パッケージを以下に開示します：
+          </p>
+          <ul class="content-text" style="padding-left: 1.5rem; margin-bottom: 1.25rem;">
+            <li><code>shared_preferences</code> — 端末内でのタスクおよびテーマ設定の保存にのみ使用</li>
+            <li><code>provider</code> — アプリ内部のUI状態管理に使用</li>
+            <li><code>desktop_multi_window</code> — デスクトップ環境でのマルチウィンドウ制御に使用</li>
+          </ul>
+          <p class="content-text">
+            通信系・広告系・解析系のライブラリは一切含まれておらず、ネットワーク通信自体を行いません。
+          </p>
+
+          <h2 class="section-title">5. お子様のプライバシー（COPPA等の準拠）</h2>
+          <p class="content-text">
+            本アプリはいかなる個人情報も収集しないため、13歳未満のお子様を含むすべてのユーザーに対して安全にご利用いただけます（App Store 年齢制限指定: 4+）。
+          </p>
+
+          <h2 class="section-title">6. ポリシーの変更</h2>
+          <p class="content-text">
+            本プライバシーポリシーは必要に応じて改定されることがあります。改定された場合は本ページにて公開いたしますが、「データを収集せず端末内でのみ管理する」という基本方針が変わることはありません。
+          </p>
+
+          <h2 class="section-title">7. お問い合わせ先</h2>
+          <p class="content-text">
+            本プライバシーポリシーに関するご質問やお問い合わせは、下記窓口までご連絡ください：
+          </p>
+
+          <div class="contact-grid">
+            <div class="contact-card">
+              <span class="contact-card-title">開発者</span>
+              <span class="contact-card-value">Shinya Yoshida（吉田 真也）</span>
+            </div>
+            <div class="contact-card">
+              <span class="contact-card-title">メールアドレス</span>
+              <span class="contact-card-value"><a href="mailto:kiyasdnbysg@icloud.com">kiyasdnbysg@icloud.com</a></span>
+            </div>
+            <div class="contact-card">
+              <span class="contact-card-title">GitHub リポジトリ</span>
+              <span class="contact-card-value"><a href="https://github.com/ShinyaYoshida-biomet/tsubusu" target="_blank" rel="noopener noreferrer">ShinyaYoshida-biomet/tsubusu</a></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <p>&copy; 2026 Shinya Yoshida. All rights reserved.</p>
+      <ul class="footer-links">
+        <li><a href="../index.html">Home</a></li>
+        <li><a href="../privacy/">Privacy Policy</a></li>
+        <li><a href="../support/">Support</a></li>
+        <li><a href="https://github.com/ShinyaYoshida-biomet/tsubusu" target="_blank" rel="noopener noreferrer">GitHub</a></li>
+      </ul>
+    </div>
+  </footer>
+
+  <script>
+    function setLanguage(lang) {
+      if (lang === 'ja') {
+        document.body.classList.add('lang-ja');
+        document.getElementById('btn-ja').classList.add('active');
+        document.getElementById('btn-en').classList.remove('active');
+        document.documentElement.lang = 'ja';
+        localStorage.setItem('tsubusu_lang', 'ja');
+      } else {
+        document.body.classList.remove('lang-ja');
+        document.getElementById('btn-en').classList.add('active');
+        document.getElementById('btn-ja').classList.remove('active');
+        document.documentElement.lang = 'en';
+        localStorage.setItem('tsubusu_lang', 'en');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const savedLang = localStorage.getItem('tsubusu_lang');
+      if (savedLang) {
+        setLanguage(savedLang);
+      } else if (navigator.language && navigator.language.startsWith('ja')) {
+        setLanguage('ja');
+      }
+    });
+  </script>
+</body>
+</html>
