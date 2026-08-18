@@ -57,6 +57,8 @@ ios/Flutter/Debug.local.xcconfig
 .pub/
 /build/
 /coverage/
+.fvm/
+
 
 # Symbolication related
 app.*.symbols
