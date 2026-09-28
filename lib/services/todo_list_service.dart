@@ -10,7 +10,10 @@ class TodoListService extends ChangeNotifier {
   final TodoListId listId;
   final TodoRepository _repository;
   List<Todo> _todos = [];
+  final List<List<Todo>> _undoHistory = [];
   List<Todo>? _nestingUndoSnapshot;
+  static const _maxUndoHistory = 50;
+  var _undoRevision = 0;
   late final Future<void> ready;
   var _isDisposed = false;
 
@@ -20,6 +23,8 @@ class TodoListService extends ChangeNotifier {
   }
 
   List<Todo> get todos => List.unmodifiable(_todos);
+  bool get canUndo => _undoHistory.isNotEmpty;
+  int get undoRevision => _undoRevision;
 
   Todo? todoById(String id) {
     for (final todo in _todos) {
@@ -34,7 +39,12 @@ class TodoListService extends ChangeNotifier {
   Future<void> _loadTodos() async {
     try {
       await _repository.migrateLegacyWindowTodos();
-      _todos = await _repository.loadTodos(listId);
+      final loadedTodos = await _repository.loadTodos(listId);
+      if (!_sameTodos(_todos, loadedTodos)) {
+        _undoHistory.clear();
+        _nestingUndoSnapshot = null;
+      }
+      _todos = loadedTodos;
       if (_isDisposed) {
         return;
       }
@@ -52,9 +62,25 @@ class TodoListService extends ChangeNotifier {
     }
   }
 
+  bool _sameTodos(List<Todo> first, List<Todo> second) {
+    if (first.length != second.length) return false;
+    for (var index = 0; index < first.length; index++) {
+      final a = first[index];
+      final b = second[index];
+      if (a.id != b.id ||
+          a.text != b.text ||
+          a.isCompleted != b.isCompleted ||
+          a.parentId != b.parentId) {
+        return false;
+      }
+    }
+    return true;
+  }
+
   Future<void> addTodo(String text) async {
     if (text.trim().isEmpty) return;
 
+    _recordUndoSnapshot();
     _todos.add(Todo(text: text.trim(), isCompleted: false));
     notifyListeners();
     await _saveTodos();
@@ -64,6 +90,7 @@ class TodoListService extends ChangeNotifier {
     if (text.trim().isEmpty || todoById(parentId) == null) return;
 
     final parent = todoById(parentId)!;
+    _recordUndoSnapshot();
     final child = Todo(
       text: text.trim(),
       isCompleted: false,
@@ -96,7 +123,8 @@ class TodoListService extends ChangeNotifier {
     }
 
     final previousParentId = todo.parentId;
-    _nestingUndoSnapshot = _todos.map((item) => item.copyWith()).toList();
+    _recordUndoSnapshot();
+    _nestingUndoSnapshot = _undoHistory.last;
     final todoIndex = _todos.indexWhere((item) => item.id == todoId);
     _todos[todoIndex] = todo.copyWith(parentId: parentId);
     if (previousParentId != null) _syncParentCompletion(previousParentId);
@@ -106,11 +134,34 @@ class TodoListService extends ChangeNotifier {
     return true;
   }
 
+  void _recordUndoSnapshot() {
+    _nestingUndoSnapshot = null;
+    _undoRevision++;
+    _undoHistory.add(_copyTodos(_todos));
+    if (_undoHistory.length > _maxUndoHistory) {
+      _undoHistory.removeAt(0);
+    }
+  }
+
+  List<Todo> _copyTodos(List<Todo> todos) =>
+      todos.map((item) => item.copyWith()).toList();
+
+  Future<bool> undoLastAction() async {
+    if (_undoHistory.isEmpty) return false;
+
+    _todos = _undoHistory.removeLast();
+    _nestingUndoSnapshot = null;
+    notifyListeners();
+    await _saveTodos();
+    return true;
+  }
+
   Future<bool> undoLastNesting() async {
     final snapshot = _nestingUndoSnapshot;
     if (snapshot == null) return false;
 
-    _todos = snapshot.map((item) => item.copyWith()).toList();
+    _undoHistory.remove(snapshot);
+    _todos = _copyTodos(snapshot);
     _nestingUndoSnapshot = null;
     notifyListeners();
     await _saveTodos();
@@ -131,6 +182,8 @@ class TodoListService extends ChangeNotifier {
   Future<void> updateTodoText(String id, String text) async {
     final todo = todoById(id);
     if (todo == null || text.trim().isEmpty) return;
+    if (todo.text == text.trim()) return;
+    _recordUndoSnapshot();
     todo.text = text.trim();
     notifyListeners();
     await _saveTodos();
@@ -138,6 +191,7 @@ class TodoListService extends ChangeNotifier {
 
   Future<void> toggleTodo(int index) async {
     if (index >= 0 && index < _todos.length) {
+      _recordUndoSnapshot();
       _todos[index].isCompleted = !_todos[index].isCompleted;
       notifyListeners();
       await _saveTodos();
@@ -148,6 +202,7 @@ class TodoListService extends ChangeNotifier {
     final todo = todoById(id);
     if (todo == null) return;
 
+    _recordUndoSnapshot();
     final nextValue = !todo.isCompleted;
     final descendants =
         _todos.where((candidate) => candidate.parentId == id).toList();
@@ -182,6 +237,7 @@ class TodoListService extends ChangeNotifier {
 
   Future<void> deleteTodo(int index) async {
     if (index >= 0 && index < _todos.length) {
+      _recordUndoSnapshot();
       _todos.removeAt(index);
       notifyListeners();
       await _saveTodos();
@@ -190,6 +246,7 @@ class TodoListService extends ChangeNotifier {
 
   Future<void> deleteTodoById(String id) async {
     if (todoById(id) == null) return;
+    _recordUndoSnapshot();
     final idsToDelete = <String>{id};
     for (final todo in _todos) {
       if (todo.parentId == id) idsToDelete.add(todo.id);
@@ -214,6 +271,7 @@ class TodoListService extends ChangeNotifier {
     if (oldIndex < newIndex) newIndex -= 1;
     if (oldIndex == newIndex) return;
 
+    _recordUndoSnapshot();
     final moved = siblings.removeAt(oldIndex);
     siblings.insert(newIndex, moved);
     final siblingIds = siblings.map((todo) => todo.id).toSet();
@@ -237,6 +295,8 @@ class TodoListService extends ChangeNotifier {
     if (oldIndex < newIndex) {
       newIndex -= 1;
     }
+    if (oldIndex == newIndex) return;
+    _recordUndoSnapshot();
     final item = _todos.removeAt(oldIndex);
     _todos.insert(newIndex, item);
     notifyListeners();

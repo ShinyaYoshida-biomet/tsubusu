@@ -16,7 +16,7 @@ class TodoList extends StatefulWidget {
   final void Function(String, String) onAddSubtask;
   final void Function(String, String) onEditTodo;
   final Future<bool> Function(String, String)? onNestTodo;
-  final Future<void> Function()? onUndoNesting;
+  final Future<void> Function()? onUndoAction;
 
   const TodoList({
     super.key,
@@ -27,7 +27,7 @@ class TodoList extends StatefulWidget {
     required this.onEditTodo,
     this.onReorderSiblings,
     this.onNestTodo,
-    this.onUndoNesting,
+    this.onUndoAction,
   });
 
   @override
@@ -104,11 +104,11 @@ class _TodoListState extends State<TodoList> {
         SnackBar(
           content: Text('サブタスクとして「${target.text}」に移動しました'),
           action:
-              widget.onUndoNesting == null
+              widget.onUndoAction == null
                   ? null
                   : SnackBarAction(
                     label: '元に戻す',
-                    onPressed: () => widget.onUndoNesting!.call(),
+                    onPressed: () => widget.onUndoAction!.call(),
                   ),
         ),
       );
