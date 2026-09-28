@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:desktop_multi_window/desktop_multi_window.dart';
 import '../../models/todo_list_id.dart';
 import '../../models/todo_list_record.dart';
@@ -300,25 +301,49 @@ class _TodoPageState extends State<TodoPage> with WidgetsBindingObserver {
   void _addTodo() {
     if (_controller.text.trim().isEmpty || _todoService == null) return;
 
-    _todoService!.addTodo(_controller.text.trim());
+    _runUndoable(() => _todoService!.addTodo(_controller.text.trim()));
     _controller.clear();
     _focusNode.requestFocus();
   }
 
+  Future<void> _runUndoable(Future<void> Function() operation) async {
+    final service = _todoService;
+    if (service == null) return;
+    final previousUndoRevision = service.undoRevision;
+    await operation();
+    if (mounted && service.undoRevision > previousUndoRevision) {
+      _showUndoSnackBar();
+    }
+  }
+
   void _deleteTodo(String id) {
-    _todoService?.deleteTodoById(id);
+    final service = _todoService;
+    if (service?.todoById(id) == null) return;
+    service!.deleteTodoById(id).then((_) {
+      if (mounted) _showUndoSnackBar();
+    });
   }
 
   void _reorderSiblings(String? parentId, int oldIndex, int newIndex) {
-    _todoService?.reorderSiblings(parentId, oldIndex, newIndex);
+    final service = _todoService;
+    if (service != null) {
+      _runUndoable(() => service.reorderSiblings(parentId, oldIndex, newIndex));
+    }
   }
 
   void _toggleTodo(String id) {
-    _todoService?.toggleTodoById(id);
+    final service = _todoService;
+    if (service?.todoById(id) == null) return;
+    service!.toggleTodoById(id).then((_) {
+      if (mounted) _showUndoSnackBar();
+    });
   }
 
   void _addSubtask(String parentId, String text) {
-    _todoService?.addSubtask(parentId, text);
+    final service = _todoService;
+    if (service != null) {
+      _runUndoable(() => service.addSubtask(parentId, text));
+    }
   }
 
   Future<bool> _nestTodo(String todoId, String parentId) async {
@@ -327,12 +352,62 @@ class _TodoPageState extends State<TodoPage> with WidgetsBindingObserver {
     return service.nestTodo(todoId, parentId);
   }
 
-  Future<void> _undoNesting() async {
-    await _todoService?.undoLastNesting();
+  Future<void> _undoLastAction() async {
+    final didUndo = await _todoService?.undoLastAction() ?? false;
+    if (!didUndo || !mounted) return;
+    final messenger = ScaffoldMessenger.of(context)..hideCurrentSnackBar();
+    messenger.showSnackBar(
+      SnackBar(
+        content: const Text('元に戻しました'),
+        duration: const Duration(seconds: 3),
+        action:
+            _todoService!.canUndo
+                ? SnackBarAction(
+                  label: 'さらに元に戻す',
+                  onPressed: () => _undoLastAction(),
+                )
+                : null,
+      ),
+    );
+  }
+
+  bool _canUseUndoShortcut() {
+    if (_todoService?.canUndo != true) return false;
+
+    final primaryFocus = FocusManager.instance.primaryFocus;
+    final focusContext = primaryFocus?.context;
+    final isEditingText =
+        focusContext?.findAncestorWidgetOfExactType<EditableText>() != null;
+    if (!isEditingText) return true;
+
+    // The add field remains focused after submitting. Let Ctrl/⌘Z undo the
+    // task once that field is empty, while preserving text editing undo when
+    // the user is typing or editing a task title.
+    return primaryFocus == _focusNode && _controller.text.isEmpty;
+  }
+
+  void _showUndoSnackBar() {
+    if (!mounted || _todoService?.canUndo != true) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: const Text('操作しました'),
+          action: SnackBarAction(
+            label: '元に戻す',
+            onPressed: () => _undoLastAction(),
+          ),
+        ),
+      );
   }
 
   void _editTodo(String id, String text) {
-    _todoService?.updateTodoText(id, text);
+    final service = _todoService;
+    final todo = service?.todoById(id);
+    if (todo == null || text.trim().isEmpty || todo.text == text.trim()) return;
+    service!.updateTodoText(id, text).then((_) {
+      if (mounted) _showUndoSnackBar();
+    });
   }
 
   void _onTitleChanged(String newTitle) {
@@ -376,38 +451,75 @@ class _TodoPageState extends State<TodoPage> with WidgetsBindingObserver {
       );
     }
 
-    return Scaffold(
-      backgroundColor: Colors.grey[100],
-      body: SafeArea(
-        child: Column(
-          children: [
-            AppHeader(
-              controller: _controller,
-              focusNode: _focusNode,
-              onAddTodo: _addTodo,
-              onShowSettings: _showSettings,
-              onShowLists: _showLists,
-              windowTitle: _windowTitle,
-              onTitleChanged: _onTitleChanged,
+    return Shortcuts(
+      shortcuts: const {
+        SingleActivator(LogicalKeyboardKey.keyZ, control: true):
+            _UndoTodoIntent(),
+        SingleActivator(LogicalKeyboardKey.keyZ, meta: true): _UndoTodoIntent(),
+      },
+      child: Actions(
+        actions: {
+          _UndoTodoIntent: _UndoTodoAction(
+            onInvoke: _undoLastAction,
+            canUndo: _canUseUndoShortcut,
+          ),
+        },
+        child: Scaffold(
+          backgroundColor: Colors.grey[100],
+          body: SafeArea(
+            child: Column(
+              children: [
+                AppHeader(
+                  controller: _controller,
+                  focusNode: _focusNode,
+                  onAddTodo: _addTodo,
+                  onShowSettings: _showSettings,
+                  onShowLists: _showLists,
+                  windowTitle: _windowTitle,
+                  onTitleChanged: _onTitleChanged,
+                ),
+                ListenableBuilder(
+                  listenable: _todoService!,
+                  builder: (context, child) {
+                    return TodoList(
+                      todos: _todoService!.todos,
+                      onToggleTodo: _toggleTodo,
+                      onDeleteTodo: _deleteTodo,
+                      onReorderSiblings: _reorderSiblings,
+                      onAddSubtask: _addSubtask,
+                      onEditTodo: _editTodo,
+                      onNestTodo: _nestTodo,
+                      onUndoAction: _undoLastAction,
+                    );
+                  },
+                ),
+              ],
             ),
-            ListenableBuilder(
-              listenable: _todoService!,
-              builder: (context, child) {
-                return TodoList(
-                  todos: _todoService!.todos,
-                  onToggleTodo: _toggleTodo,
-                  onDeleteTodo: _deleteTodo,
-                  onReorderSiblings: _reorderSiblings,
-                  onAddSubtask: _addSubtask,
-                  onEditTodo: _editTodo,
-                  onNestTodo: _nestTodo,
-                  onUndoNesting: _undoNesting,
-                );
-              },
-            ),
-          ],
+          ),
         ),
       ),
     );
+  }
+}
+
+class _UndoTodoIntent extends Intent {
+  const _UndoTodoIntent();
+}
+
+class _UndoTodoAction extends Action<_UndoTodoIntent> {
+  final Future<void> Function() onInvoke;
+  final bool Function() canUndo;
+
+  _UndoTodoAction({required this.onInvoke, required this.canUndo});
+
+  @override
+  bool isEnabled(_UndoTodoIntent intent) {
+    return canUndo();
+  }
+
+  @override
+  Object? invoke(_UndoTodoIntent intent) {
+    onInvoke();
+    return null;
   }
 }
