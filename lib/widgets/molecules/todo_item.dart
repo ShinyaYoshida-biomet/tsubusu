@@ -23,6 +23,8 @@ class TodoItem extends StatefulWidget {
   final int? reorderIndex;
   final bool isCompleted;
   final bool isSubtask;
+  final int? totalChildren;
+  final int? completedChildren;
 
   const TodoItem({
     super.key,
@@ -38,6 +40,8 @@ class TodoItem extends StatefulWidget {
     this.reorderIndex,
     this.isCompleted = false,
     this.isSubtask = false,
+    this.totalChildren,
+    this.completedChildren,
   });
 
   @override
@@ -264,6 +268,45 @@ class _TodoItemState extends State<TodoItem> {
           trailing: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (widget.hasChildren && (widget.totalChildren ?? 0) > 0) ...[
+                Tooltip(
+                  message: widget.isExpanded ? '折りたたむ' : '展開する',
+                  child: InkWell(
+                    onTap: widget.onToggleExpanded,
+                    borderRadius: BorderRadius.circular(
+                      DesignConstants.borderRadiusSmall,
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 4,
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            widget.isExpanded
+                                ? Icons.expand_more
+                                : Icons.chevron_right,
+                            size: DesignConstants.iconSizeSmall,
+                            color: themeProvider.completedTextColor,
+                          ),
+                          const SizedBox(width: 2),
+                          Text(
+                            '${widget.completedChildren ?? 0}/${widget.totalChildren}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: themeProvider.completedTextColor,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                SizedBox(width: DesignConstants.spacingSmall),
+              ],
               if (_isHovered && !_isEditing)
                 IconButton(
                   icon: const Icon(Icons.more_horiz),
