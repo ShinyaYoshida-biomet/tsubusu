@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../../constants/design_constants.dart';
 import '../../models/todo.dart';
 import '../../providers/theme_provider.dart';
+import '../atoms/animated_checkbox.dart';
 import '../molecules/todo_item.dart';
 
 class TodoList extends StatefulWidget {
@@ -388,13 +390,18 @@ class _TodoListState extends State<TodoList> {
               todo: parent,
               onToggle: () => widget.onToggleTodo(parent.id),
               onDelete: () => widget.onDeleteTodo(parent.id),
-              onAddSubtask: () => setState(() => _addingForId = parent.id),
+              onAddSubtask: () => setState(() {
+                _addingForId = parent.id;
+                _collapsedIds.remove(parent.id);
+              }),
               onMove:
                   !completed ? () => _chooseNestTarget(context, parent) : null,
               onEdit: (text) => widget.onEditTodo(parent.id, text),
               hasChildren: children.isNotEmpty,
               isExpanded: isExpanded,
               onToggleExpanded: () => _toggleExpanded(parent.id),
+              totalChildren: children.length,
+              completedChildren: completedChildren,
               reorderIndex: completed ? null : rootReorderIndex,
               isCompleted: completed,
             ),
@@ -437,26 +444,15 @@ class _TodoListState extends State<TodoList> {
             ),
           if (_addingForId == parent.id)
             Padding(
-              padding: const EdgeInsets.only(left: 56, right: 8, bottom: 8),
+              padding: const EdgeInsets.only(left: 24, right: 24),
               child: _SubtaskInput(
                 onSubmit: (text) {
                   setState(() => _addingForId = null);
                   if (text.trim().isNotEmpty) {
-                    widget.onAddSubtask(parent.id, text);
+                    widget.onAddSubtask(parent.id, text.trim());
                   }
                 },
                 onCancel: () => setState(() => _addingForId = null),
-              ),
-            ),
-          if (children.isNotEmpty && !completed)
-            Padding(
-              padding: const EdgeInsets.only(left: 56, bottom: 6),
-              child: Text(
-                '$completedChildren/${children.length}',
-                style: TextStyle(
-                  fontSize: 11,
-                  color: Theme.of(context).colorScheme.outline,
-                ),
               ),
             ),
         ],
@@ -477,19 +473,121 @@ class _SubtaskInput extends StatefulWidget {
 
 class _SubtaskInputState extends State<_SubtaskInput> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
 
   @override
   void dispose() {
     _controller.dispose();
+    _focusNode.dispose();
     super.dispose();
   }
 
+  void _submit() {
+    final text = _controller.text.trim();
+    if (text.isNotEmpty) {
+      widget.onSubmit(text);
+    } else {
+      widget.onCancel();
+    }
+  }
+
   @override
-  Widget build(BuildContext context) => TextField(
-    controller: _controller,
-    autofocus: true,
-    decoration: const InputDecoration(hintText: 'サブタスクを追加…', isDense: true),
-    onSubmitted: widget.onSubmit,
-    onTapOutside: (_) => widget.onCancel(),
-  );
+  Widget build(BuildContext context) {
+    final themeProvider = Provider.of<ThemeProvider>(context);
+
+    return Focus(
+      onKeyEvent: (node, event) {
+        if (event is KeyDownEvent &&
+            event.logicalKey == LogicalKeyboardKey.escape) {
+          widget.onCancel();
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
+      },
+      child: Container(
+        margin: EdgeInsets.only(bottom: DesignConstants.spacingSmall),
+        decoration: BoxDecoration(
+          color: themeProvider.cardColor,
+          borderRadius: BorderRadius.circular(
+            DesignConstants.borderRadiusStandard,
+          ),
+          border: Border.all(
+            color: themeProvider.primaryColor.withValues(alpha: 0.6),
+            width: 1.5,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: themeProvider.shadowColor,
+              blurRadius: 2,
+              offset: const Offset(0, 1),
+            ),
+          ],
+        ),
+        child: ListTile(
+          contentPadding: EdgeInsets.only(
+            left: DesignConstants.spacingMedium * 2,
+            right: DesignConstants.spacingSmall,
+          ),
+          leading: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Opacity(
+                opacity: 0.5,
+                child: AnimatedCheckbox(
+                  value: false,
+                  isStatic: true,
+                  activeColor: themeProvider.primaryColor,
+                ),
+              ),
+            ],
+          ),
+          title: TextField(
+            controller: _controller,
+            focusNode: _focusNode,
+            autofocus: true,
+            style: TextStyle(
+              color: themeProvider.textColor,
+            ),
+            cursorColor: themeProvider.primaryColor,
+            decoration: InputDecoration(
+              hintText: 'サブタスクを追加…',
+              hintStyle: TextStyle(
+                color: themeProvider.completedTextColor,
+              ),
+              border: InputBorder.none,
+              isDense: true,
+              contentPadding: EdgeInsets.zero,
+            ),
+            onSubmitted: (_) => _submit(),
+            onTapOutside: (_) => widget.onCancel(),
+          ),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: Icon(
+                  Icons.check,
+                  size: DesignConstants.iconSizeStandard,
+                  color: themeProvider.primaryColor,
+                ),
+                onPressed: _submit,
+                tooltip: '追加',
+              ),
+              IconButton(
+                visualDensity: VisualDensity.compact,
+                icon: Icon(
+                  Icons.close,
+                  size: DesignConstants.iconSizeStandard,
+                  color: themeProvider.completedTextColor,
+                ),
+                onPressed: widget.onCancel,
+                tooltip: 'キャンセル',
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }

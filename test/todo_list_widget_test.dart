@@ -78,4 +78,97 @@ void main() {
 
     expect(toggledTodoId, isNull);
   });
+
+  testWidgets('displays subtask counter badge on parent task', (tester) async {
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                TodoList(
+                  todos: [
+                    Todo(id: 'parent', text: 'Parent task', isCompleted: false),
+                    Todo(
+                      id: 'sub-1',
+                      text: 'Done sub',
+                      isCompleted: true,
+                      parentId: 'parent',
+                    ),
+                    Todo(
+                      id: 'sub-2',
+                      text: 'Open sub',
+                      isCompleted: false,
+                      parentId: 'parent',
+                    ),
+                  ],
+                  onToggleTodo: (_) {},
+                  onDeleteTodo: (_) {},
+                  onAddSubtask: (_, __) {},
+                  onEditTodo: (_, __) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Parent task should display subtask counter badge '1/2'
+    expect(find.text('1/2'), findsOneWidget);
+  });
+
+  testWidgets('shows native-styled subtask input and submits subtask', (tester) async {
+    String? addedParentId;
+    String? addedText;
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                TodoList(
+                  todos: [
+                    Todo(id: 'parent', text: 'Parent task', isCompleted: false),
+                  ],
+                  onToggleTodo: (_) {},
+                  onDeleteTodo: (_) {},
+                  onAddSubtask: (pId, text) {
+                    addedParentId = pId;
+                    addedText = text;
+                  },
+                  onEditTodo: (_, __) {},
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    // Right-click or long-press to open menu
+    await tester.tap(find.byType(ListTile).first, buttons: 2); // secondary tap
+    await tester.pumpAndSettle();
+
+    // Tap "サブタスクを追加"
+    expect(find.text('サブタスクを追加'), findsOneWidget);
+    await tester.tap(find.text('サブタスクを追加'));
+    await tester.pumpAndSettle();
+
+    // Subtask input field should be visible with borderless style and placeholder
+    expect(find.text('サブタスクを追加…'), findsOneWidget);
+
+    // Enter subtask title
+    await tester.enterText(find.byType(TextField).last, 'My new subtask');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pumpAndSettle();
+
+    expect(addedParentId, 'parent');
+    expect(addedText, 'My new subtask');
+    // Input should be dismissed
+    expect(find.text('サブタスクを追加…'), findsNothing);
+  });
 }
