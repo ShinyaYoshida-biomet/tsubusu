@@ -152,6 +152,11 @@ class _TodoListState extends State<TodoList> {
     return DragTarget<String>(
       key: key,
       onWillAcceptWithDetails: (details) {
+        final source =
+            widget.todos.where((todo) => todo.id == details.data).firstOrNull;
+        if (source == null || source.id == target.id) return false;
+        if (source.parentId == target.parentId) return true;
+
         final canNest = _canNest(details.data, target.id);
         if (canNest) _scheduleExpansion(target);
         return canNest;
@@ -161,7 +166,21 @@ class _TodoListState extends State<TodoList> {
         _cancelExpansion();
         final sources = widget.todos.where((todo) => todo.id == details.data);
         if (sources.isEmpty) return;
-        await _nestInto(sources.first, target);
+        final source = sources.first;
+        if (source.parentId == target.parentId) {
+          final siblings =
+              widget.todos
+                  .where((todo) => todo.parentId == target.parentId)
+                  .toList();
+          final siblingIndex = siblings.indexWhere(
+            (todo) => todo.id == target.id,
+          );
+          if (siblingIndex >= 0) {
+            await _reorderAt(source.parentId, siblingIndex, source.id);
+          }
+          return;
+        }
+        await _nestInto(source, target);
       },
       builder: (context, candidateData, rejectedData) {
         final isDropTarget = candidateData.isNotEmpty;
@@ -199,13 +218,7 @@ class _TodoListState extends State<TodoList> {
     final oldIndex = siblings.indexWhere((todo) => todo.id == sourceId);
     if (oldIndex == -1 || oldIndex == dropIndex) return;
 
-    final newIndex =
-        dropIndex == siblings.length
-            ? dropIndex
-            : oldIndex < dropIndex
-            ? dropIndex + 1
-            : dropIndex;
-    widget.onReorderSiblings?.call(parentId, oldIndex, newIndex);
+    widget.onReorderSiblings?.call(parentId, oldIndex, dropIndex);
   }
 
   Widget _reorderDropZone(String? parentId, int dropIndex) {

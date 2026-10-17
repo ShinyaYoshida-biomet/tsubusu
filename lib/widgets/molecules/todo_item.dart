@@ -326,6 +326,7 @@ class _TodoItemState extends State<TodoItem> {
                   onKeyEvent: _handleDragKey,
                   child: LongPressDraggable<String>(
                     key: ValueKey('${widget.todo.id}-drag-$_dragVersion'),
+                    delay: const Duration(milliseconds: 300),
                     data: widget.todo.id,
                     dragAnchorStrategy: _dragHandleAnchor,
                     onDragStarted: _dragFocusNode.requestFocus,
@@ -345,8 +346,14 @@ class _TodoItemState extends State<TodoItem> {
                       ),
                     ),
                     child: const Tooltip(
-                      message: 'Drag to reorder or make a subtask',
-                      child: Icon(Icons.drag_handle),
+                      triggerMode: TooltipTriggerMode.tap,
+                      message:
+                          'Drag onto a sibling to reorder; onto another level to nest',
+                      child: SizedBox(
+                        width: 44,
+                        height: 48,
+                        child: Center(child: Icon(Icons.drag_handle)),
+                      ),
                     ),
                   ),
                 ),

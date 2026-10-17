@@ -79,6 +79,58 @@ void main() {
     expect(toggledTodoId, isNull);
   });
 
+  testWidgets('reorders sibling tasks when dragged onto another card', (
+    tester,
+  ) async {
+    int? oldIndex;
+    int? newIndex;
+    var nested = false;
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider(
+        create: (_) => ThemeProvider(),
+        child: MaterialApp(
+          home: Scaffold(
+            body: Column(
+              children: [
+                TodoList(
+                  todos: [
+                    Todo(id: 'first', text: 'First', isCompleted: false),
+                    Todo(id: 'second', text: 'Second', isCompleted: false),
+                  ],
+                  onToggleTodo: (_) {},
+                  onDeleteTodo: (_) {},
+                  onAddSubtask: (_, __) {},
+                  onEditTodo: (_, __) {},
+                  onReorderSiblings: (_, from, to) {
+                    oldIndex = from;
+                    newIndex = to;
+                  },
+                  onNestTodo: (_, __) async {
+                    nested = true;
+                    return true;
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+
+    final dragHandle = find.byIcon(Icons.drag_handle).first;
+    final gesture = await tester.startGesture(tester.getCenter(dragHandle));
+    await tester.pump(const Duration(milliseconds: 350));
+    await gesture.moveTo(tester.getCenter(find.text('Second')));
+    await tester.pump();
+    await gesture.up();
+    await tester.pumpAndSettle();
+
+    expect(oldIndex, 0);
+    expect(newIndex, 1);
+    expect(nested, isFalse);
+  });
+
   testWidgets('displays subtask counter badge on parent task', (tester) async {
     await tester.pumpWidget(
       ChangeNotifierProvider(
